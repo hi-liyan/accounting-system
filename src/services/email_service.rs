@@ -31,7 +31,7 @@ impl EmailService {
         })
     }
 
-    pub async fn send_verification_email(&self, to_email: &str, username: &str, token: &str) -> Result<()> {
+    pub async fn send_verification_email(&self, to_email: &str, token: &str) -> Result<()> {
         let verification_url = format!("{}/auth/verify/{}", self.app_url, token);
 
         let email = Message::builder()
@@ -51,7 +51,7 @@ impl EmailService {
                     <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
                         <h2 style="color: #007bff;">欢迎注册记账系统！</h2>
                         
-                        <p>亲爱的 <strong>{}</strong>，</p>
+                        <p>您好，</p>
                         
                         <p>感谢您注册我们的记账系统。请点击下面的链接来验证您的邮箱地址：</p>
                         
@@ -77,7 +77,7 @@ impl EmailService {
                 </body>
                 </html>
                 "#,
-                username, verification_url, verification_url, verification_url
+                verification_url, verification_url, verification_url
             ))?;
 
         self.mailer.send(&email)?;

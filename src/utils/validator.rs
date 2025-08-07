@@ -6,9 +6,6 @@ pub struct RegisterForm {
     #[validate(email(message = "请输入有效的邮箱地址"))]
     pub email: String,
     
-    #[validate(length(min = 3, max = 50, message = "用户名长度必须在3-50字符之间"))]
-    pub username: String,
-    
     #[validate(length(min = 6, message = "密码长度至少6个字符"))]
     pub password: String,
     

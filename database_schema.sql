@@ -7,7 +7,6 @@ USE accounting_system;
 CREATE TABLE users (
     id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '用户ID',
     email VARCHAR(255) UNIQUE NOT NULL COMMENT '邮箱地址',
-    username VARCHAR(100) NOT NULL COMMENT '用户名',
     password_hash VARCHAR(255) NOT NULL COMMENT '密码哈希',
     is_verified BOOLEAN DEFAULT FALSE COMMENT '邮箱是否已验证',
     verification_token VARCHAR(255) COMMENT '邮箱验证令牌',

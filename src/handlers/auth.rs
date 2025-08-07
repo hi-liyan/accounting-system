@@ -108,7 +108,7 @@ pub async fn register(
 
     match app_state
         .auth_service
-        .register(&app_state.db_pool, form.email, form.username, form.password)
+        .register(&app_state.db_pool, form.email, form.password)
         .await
     {
         Ok(()) => Redirect::to("/auth/register?success=注册成功！请检查您的邮箱并点击验证链接"),

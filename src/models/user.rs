@@ -6,7 +6,6 @@ use chrono::{DateTime, Utc};
 pub struct User {
     pub id: i64,
     pub email: String,
-    pub username: String,
     pub password_hash: String,
     pub is_verified: bool,
     pub verification_token: Option<String>,
@@ -18,7 +17,6 @@ pub struct User {
 pub struct UserResponse {
     pub id: i64,
     pub email: String,
-    pub username: String,
     pub is_verified: bool,
     pub created_at: DateTime<Utc>,
 }
@@ -28,7 +26,6 @@ impl From<User> for UserResponse {
         UserResponse {
             id: user.id,
             email: user.email,
-            username: user.username,
             is_verified: user.is_verified,
             created_at: user.created_at,
         }
@@ -38,7 +35,6 @@ impl From<User> for UserResponse {
 #[derive(Debug, Deserialize)]
 pub struct CreateUser {
     pub email: String,
-    pub username: String,
     pub password_hash: String,
     pub verification_token: String,
 }
@@ -47,12 +43,11 @@ impl User {
     pub async fn create(pool: &crate::database::DbPool, create_user: CreateUser) -> anyhow::Result<User> {
         let user = sqlx::query_as::<_, User>(
             r#"
-            INSERT INTO users (email, username, password_hash, verification_token)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO users (email, password_hash, verification_token)
+            VALUES (?, ?, ?)
             "#,
         )
         .bind(&create_user.email)
-        .bind(&create_user.username)
         .bind(&create_user.password_hash)
         .bind(&create_user.verification_token)
         .fetch_one(pool)

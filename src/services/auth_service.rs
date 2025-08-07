@@ -12,7 +12,6 @@ use crate::services::EmailService;
 pub struct Claims {
     pub sub: i64, // subject (user id)
     pub email: String,
-    pub username: String,
     pub exp: i64, // expiration time
     pub iat: i64, // issued at
 }
@@ -35,7 +34,6 @@ impl AuthService {
         &self,
         pool: &crate::database::DbPool,
         email: String,
-        username: String,
         password: String,
     ) -> Result<()> {
         // 检查邮箱是否已存在
@@ -52,7 +50,6 @@ impl AuthService {
         // 创建用户
         let create_user = CreateUser {
             email: email.clone(),
-            username: username.clone(),
             password_hash,
             verification_token: verification_token.clone(),
         };
@@ -61,7 +58,7 @@ impl AuthService {
 
         // 发送验证邮件
         self.email_service
-            .send_verification_email(&email, &username, &verification_token)
+            .send_verification_email(&email, &verification_token)
             .await?;
 
         Ok(())
@@ -120,7 +117,7 @@ impl AuthService {
 
         // 发送验证邮件
         self.email_service
-            .send_verification_email(&email, &user.username, &new_token)
+            .send_verification_email(&email, &new_token)
             .await?;
 
         Ok(())
@@ -133,7 +130,6 @@ impl AuthService {
         let claims = Claims {
             sub: user.id,
             email: user.email.clone(),
-            username: user.username.clone(),
             exp: exp.timestamp(),
             iat: now.timestamp(),
         };

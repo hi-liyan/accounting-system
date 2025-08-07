@@ -15,7 +15,6 @@ use crate::database::DbPool;
 pub struct CurrentUser {
     pub id: i64,
     pub email: String,
-    pub username: String,
     pub is_verified: bool,
 }
 
@@ -24,7 +23,6 @@ impl From<User> for CurrentUser {
         Self {
             id: user.id,
             email: user.email,
-            username: user.username,
             is_verified: user.is_verified,
         }
     }
