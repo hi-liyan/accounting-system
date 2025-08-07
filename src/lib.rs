@@ -21,7 +21,7 @@ use config::AppConfig;
 use database::create_pool;
 use services::{AuthService, EmailService};
 use middleware::AppState;
-use handlers::*;
+use handlers::{auth, dashboard, account_book};
 
 pub async fn create_app() -> anyhow::Result<Router> {
     // 加载配置
@@ -45,15 +45,19 @@ pub async fn create_app() -> anyhow::Result<Router> {
     // 创建路由
     let app = Router::new()
         // 首页和仪表板
-        .route("/", get(index))
-        .route("/dashboard", get(dashboard))
+        .route("/", get(dashboard::index))
+        .route("/dashboard", get(dashboard::dashboard))
         
         // 认证路由
-        .route("/auth/login", get(show_login).post(login))
-        .route("/auth/register", get(show_register).post(register))
-        .route("/auth/logout", post(logout))
-        .route("/auth/verify/:token", get(verify_email))
-        .route("/auth/resend-verification", post(resend_verification))
+        .route("/auth/login", get(auth::show_login).post(auth::login))
+        .route("/auth/register", get(auth::show_register).post(auth::register))
+        .route("/auth/logout", post(auth::logout))
+        .route("/auth/verify/:token", get(auth::verify_email))
+        .route("/auth/resend-verification", post(auth::resend_verification))
+        
+        // 账本路由
+        .route("/account-books", get(account_book::list).post(account_book::create))
+        .route("/account-books/new", get(account_book::show_new))
         
         // 静态文件服务
         .nest_service("/static", ServeDir::new("static"))

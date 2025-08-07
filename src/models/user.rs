@@ -41,7 +41,7 @@ pub struct CreateUser {
 
 impl User {
     pub async fn create(pool: &crate::database::DbPool, create_user: CreateUser) -> anyhow::Result<User> {
-        let user = sqlx::query_as::<_, User>(
+        let result = sqlx::query(
             r#"
             INSERT INTO users (email, password_hash, verification_token)
             VALUES (?, ?, ?)
@@ -50,8 +50,12 @@ impl User {
         .bind(&create_user.email)
         .bind(&create_user.password_hash)
         .bind(&create_user.verification_token)
-        .fetch_one(pool)
+        .execute(pool)
         .await?;
+
+        let user_id = result.last_insert_id() as i64;
+        let user = Self::find_by_id(pool, user_id).await?
+            .ok_or_else(|| anyhow::anyhow!("Failed to retrieve created user"))?;
 
         Ok(user)
     }

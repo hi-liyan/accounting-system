@@ -98,12 +98,18 @@ pub async fn register(
         let error_msg = errors
             .field_errors()
             .iter()
-            .flat_map(|(_, v)| v.iter())
-            .next()
-            .map(|e| e.message.as_ref().unwrap_or(&"验证失败".into()).to_string())
-            .unwrap_or_else(|| "输入数据无效".to_string());
+            .map(|(field, errs)| {
+                let field_errors = errs.iter()
+                    .map(|e| e.message.as_ref().unwrap_or(&"验证失败".into()).to_string())
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                format!("{}: {}", field, field_errors)
+            })
+            .collect::<Vec<_>>()
+            .join("; ");
+        let final_error = if error_msg.is_empty() { "输入数据无效".to_string() } else { error_msg };
         return Redirect::to(&format!("/auth/register?error={}", 
-            urlencoding::encode(&error_msg)));
+            urlencoding::encode(&final_error)));
     }
 
     match app_state

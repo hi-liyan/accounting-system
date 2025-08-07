@@ -29,7 +29,7 @@ impl AccountBook {
         pool: &crate::database::DbPool,
         create_book: CreateAccountBook,
     ) -> anyhow::Result<AccountBook> {
-        let book = sqlx::query_as::<_, AccountBook>(
+        let result = sqlx::query(
             r#"
             INSERT INTO account_books (user_id, name, description, currency, cycle_start_day)
             VALUES (?, ?, ?, ?, ?)
@@ -40,8 +40,12 @@ impl AccountBook {
         .bind(&create_book.description)
         .bind(&create_book.currency)
         .bind(create_book.cycle_start_day)
-        .fetch_one(pool)
+        .execute(pool)
         .await?;
+
+        let book_id = result.last_insert_id() as i64;
+        let book = Self::find_by_id(pool, book_id, create_book.user_id).await?
+            .ok_or_else(|| anyhow::anyhow!("Failed to retrieve created account book"))?;
 
         Ok(book)
     }
