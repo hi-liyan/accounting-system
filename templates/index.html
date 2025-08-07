@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - 记账系统{% endblock %}
+
+{% block nav %}
+<ul class="navbar-nav ms-auto">
+    <li class="nav-item">
+        <a class="nav-link" href="/auth/login">登录</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/auth/register">注册</a>
+    </li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section text-center py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="display-4 text-primary mb-4">
+                <i class="bi bi-calculator-fill"></i>
+                智能记账系统
+            </h1>
+            <p class="lead text-muted mb-4">
+                简单易用的个人财务管理工具，帮助您轻松掌控收支状况
+            </p>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                <a href="/auth/register" class="btn btn-primary btn-lg me-md-2">
+                    <i class="bi bi-person-plus"></i>
+                    立即注册
+                </a>
+                <a href="/auth/login" class="btn btn-outline-primary btn-lg">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    登录账户
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="features-section py-5">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-journal-text display-1 text-primary mb-3"></i>
+                    <h5 class="card-title">多账本管理</h5>
+                    <p class="card-text text-muted">
+                        创建多个账本，分别管理不同场景的收支记录
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-tags display-1 text-success mb-3"></i>
+                    <h5 class="card-title">分类统计</h5>
+                    <p class="card-text text-muted">
+                        智能分类管理，清晰了解各项支出占比
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-graph-up display-1 text-warning mb-3"></i>
+                    <h5 class="card-title">报表分析</h5>
+                    <p class="card-text text-muted">
+                        详细的月度报表，帮助您分析财务趋势
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="cta-section bg-light py-5 rounded">
+    <div class="text-center">
+        <h3 class="mb-4">开始您的智能记账之旅</h3>
+        <p class="text-muted mb-4">
+            注册只需30秒，立即体验专业的财务管理服务
+        </p>
+        <a href="/auth/register" class="btn btn-primary btn-lg">
+            <i class="bi bi-rocket-takeoff"></i>
+            免费开始使用
+        </a>
+    </div>
+</div>
+{% endblock %}
