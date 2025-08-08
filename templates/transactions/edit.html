@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}编辑交易 - {{ account_book.name }}{% endblock %}
+
+{% block nav %}
+<ul class="navbar-nav ms-auto">
+    <li class="nav-item">
+        <a class="nav-link" href="/dashboard">仪表板</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/account-books">我的账本</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/auth/logout">退出登录</a>
+    </li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<!-- 错误消息显示 -->
+{% if !error.is_empty() %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle"></i>
+    {{ error }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<!-- 页面标题 -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>
+            <i class="bi bi-pencil text-primary"></i>
+            编辑交易
+        </h2>
+        <p class="text-muted mb-0">
+            <i class="bi bi-journal-text"></i>
+            账本：<strong>{{ account_book.name }}</strong>
+            <span class="badge bg-info ms-2">{{ account_book.currency }}</span>
+        </p>
+    </div>
+    <a href="/account-books/{{ account_book.id }}/transactions" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+        返回列表
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-receipt"></i>
+                    交易信息
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="/account-books/{{ account_book.id }}/transactions/{{ transaction.id }}/update" id="transactionForm">
+                    <!-- 交易类型（显示但不可编辑） -->
+                    <div class="mb-4">
+                        <label class="form-label">交易类型</label>
+                        <div class="form-control-plaintext">
+                            {% if transaction.transaction_type == "income" %}
+                                <span class="badge bg-success fs-6">
+                                    <i class="bi bi-arrow-up-circle"></i>
+                                    收入
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger fs-6">
+                                    <i class="bi bi-arrow-down-circle"></i>
+                                    支出
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle"></i>
+                            交易类型创建后不可修改
+                        </div>
+                    </div>
+
+                    <!-- 分类选择 -->
+                    <div class="mb-3">
+                        <label for="category_id" class="form-label">分类</label>
+                        <select class="form-select" id="category_id" name="category_id" required>
+                            <option value="">请选择分类</option>
+                        </select>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle"></i>
+                            只显示与当前交易类型匹配的分类
+                        </div>
+                    </div>
+
+                    <!-- 金额 -->
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">金额</label>
+                        <div class="input-group">
+                            <span class="input-group-text">{{ account_book.currency }}</span>
+                            <input type="number" class="form-control" id="amount" name="amount" 
+                                   step="0.01" min="0.01" value="{{ transaction.amount }}" required>
+                        </div>
+                    </div>
+
+                    <!-- 日期 -->
+                    <div class="mb-3">
+                        <label for="transaction_date" class="form-label">交易日期</label>
+                        <input type="date" class="form-control" id="transaction_date" name="transaction_date" 
+                               value="{{ transaction.transaction_date_str }}" required>
+                    </div>
+
+                    <!-- 描述 -->
+                    <div class="mb-3">
+                        <label for="description" class="form-label">描述（可选）</label>
+                        <textarea class="form-control" id="description" name="description" 
+                                  rows="3" placeholder="请输入交易描述...">{{ transaction.description }}</textarea>
+                    </div>
+
+                    <!-- 标签 -->
+                    <div class="mb-4">
+                        <label for="tags" class="form-label">标签（可选）</label>
+                        <input type="text" class="form-control" id="tags" name="tags" 
+                               value="{{ transaction.tags }}" placeholder="用英文逗号分隔多个标签，例如：餐饮,聚餐">
+                        <div class="form-text">
+                            <i class="bi bi-tag"></i>
+                            多个标签请用英文逗号分隔
+                        </div>
+                    </div>
+
+                    <!-- 提交按钮 -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="/account-books/{{ account_book.id }}/transactions" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i>
+                            取消
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i>
+                            更新交易
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 危险区域 -->
+        <div class="card mt-4 border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    危险区域
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">删除交易记录将永久移除所有相关数据，此操作不可撤销。</p>
+                <button class="btn btn-outline-danger" onclick="confirmDelete()">
+                    <i class="bi bi-trash"></i>
+                    删除此交易
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 删除确认模态框 -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                    确认删除
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>您确定要删除此交易记录吗？</p>
+                <div class="alert alert-warning">
+                    <strong>分类：</strong>{{ transaction.category_name }}<br>
+                    <strong>金额：</strong>{{ account_book.currency }}{{ transaction.amount }}<br>
+                    <strong>日期：</strong>{{ transaction.transaction_date_str }}
+                </div>
+                <p class="text-danger"><strong>注意：此操作不可撤销！</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <form action="/account-books/{{ account_book.id }}/transactions/{{ transaction.id }}/delete" method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i>
+                        确认删除
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 分类数据
+const categories = [
+    {% for category in categories %}
+    {
+        id: {{ category.id }},
+        name: "{{ category.name }}",
+        type: "{{ category.category_type }}",
+        icon: "{{ category.icon }}",
+        color: "{{ category.color }}"
+    }{% if !loop.last %},{% endif %}
+    {% endfor %}
+];
+
+// 当前交易信息
+const currentTransaction = {
+    type: "{{ transaction.transaction_type }}",
+    categoryId: {{ transaction.category_id }}
+};
+
+// 初始化分类选项
+function initializeCategoryOptions() {
+    const categorySelect = document.getElementById('category_id');
+    
+    // 清空现有选项
+    categorySelect.innerHTML = '<option value="">请选择分类</option>';
+    
+    // 根据当前交易类型过滤分类
+    const filteredCategories = categories.filter(cat => cat.type === currentTransaction.type);
+    
+    if (filteredCategories.length === 0) {
+        categorySelect.innerHTML = '<option value="">暂无可用分类</option>';
+        categorySelect.disabled = true;
+    } else {
+        categorySelect.disabled = false;
+        filteredCategories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            
+            // 选中当前交易的分类
+            if (category.id === currentTransaction.categoryId) {
+                option.selected = true;
+            }
+            
+            categorySelect.appendChild(option);
+        });
+    }
+}
+
+// 确认删除
+function confirmDelete() {
+    var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    deleteModal.show();
+}
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化分类选项
+    initializeCategoryOptions();
+    
+    // 表单验证
+    document.getElementById('transactionForm').addEventListener('submit', function(e) {
+        const categorySelect = document.getElementById('category_id');
+        if (!categorySelect.value || categorySelect.disabled) {
+            e.preventDefault();
+            const typeName = currentTransaction.type === 'income' ? '收入' : '支出';
+            alert(`该账本暂无可用的${typeName}分类，请先创建分类。`);
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -21,7 +21,7 @@ use config::AppConfig;
 use database::create_pool;
 use services::{AuthService, EmailService};
 use middleware::AppState;
-use handlers::{auth, dashboard, account_book, category, api};
+use handlers::{auth, dashboard, account_book, category, transaction, api};
 
 pub async fn create_app() -> anyhow::Result<Router> {
     // 加载配置
@@ -69,6 +69,13 @@ pub async fn create_app() -> anyhow::Result<Router> {
         .route("/account-books/:account_book_id/categories/:category_id/edit", get(category::show_edit))
         .route("/account-books/:account_book_id/categories/:category_id/update", post(category::update))
         .route("/account-books/:account_book_id/categories/:category_id/delete", post(category::delete))
+        
+        // 交易路由
+        .route("/account-books/:id/transactions", get(transaction::list))
+        .route("/account-books/:id/transactions/new", get(transaction::show_new).post(transaction::create))
+        .route("/account-books/:account_book_id/transactions/:transaction_id/edit", get(transaction::show_edit))
+        .route("/account-books/:account_book_id/transactions/:transaction_id/update", post(transaction::update))
+        .route("/account-books/:account_book_id/transactions/:transaction_id/delete", post(transaction::delete))
         
         // API路由
         .route("/api/preferences/account-book", post(api::update_account_book_preference))

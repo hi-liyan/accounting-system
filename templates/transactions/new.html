@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}新建交易 - {{ account_book.name }}{% endblock %}
+
+{% block nav %}
+<ul class="navbar-nav ms-auto">
+    <li class="nav-item">
+        <a class="nav-link" href="/dashboard">仪表板</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/account-books">我的账本</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/auth/logout">退出登录</a>
+    </li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<!-- 错误消息显示 -->
+{% if !error.is_empty() %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle"></i>
+    {{ error }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<!-- 页面标题 -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>
+            <i class="bi bi-plus-circle text-success"></i>
+            新建交易
+        </h2>
+        <p class="text-muted mb-0">
+            <i class="bi bi-journal-text"></i>
+            账本：<strong>{{ account_book.name }}</strong>
+            <span class="badge bg-info ms-2">{{ account_book.currency }}</span>
+        </p>
+    </div>
+    <a href="/account-books/{{ account_book.id }}/transactions" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+        返回列表
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-receipt"></i>
+                    交易信息
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" id="transactionForm">
+                    <!-- 交易类型 -->
+                    <div class="mb-4">
+                        <label class="form-label">交易类型</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="transaction_type" id="income" value="income" autocomplete="off">
+                            <label class="btn btn-outline-success" for="income">
+                                <i class="bi bi-arrow-up-circle"></i>
+                                收入
+                            </label>
+
+                            <input type="radio" class="btn-check" name="transaction_type" id="expense" value="expense" autocomplete="off" checked>
+                            <label class="btn btn-outline-danger" for="expense">
+                                <i class="bi bi-arrow-down-circle"></i>
+                                支出
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 分类选择 -->
+                    <div class="mb-3">
+                        <label for="category_id" class="form-label">分类</label>
+                        <select class="form-select" id="category_id" name="category_id" required>
+                            <option value="">请选择分类</option>
+                        </select>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle"></i>
+                            分类选项会根据交易类型自动过滤
+                        </div>
+                    </div>
+
+                    <!-- 金额 -->
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">金额</label>
+                        <div class="input-group">
+                            <span class="input-group-text">{{ account_book.currency }}</span>
+                            <input type="number" class="form-control" id="amount" name="amount" 
+                                   step="0.01" min="0.01" placeholder="0.00" required>
+                        </div>
+                    </div>
+
+                    <!-- 日期 -->
+                    <div class="mb-3">
+                        <label for="transaction_date" class="form-label">交易日期</label>
+                        <input type="date" class="form-control" id="transaction_date" name="transaction_date" required>
+                    </div>
+
+                    <!-- 描述 -->
+                    <div class="mb-3">
+                        <label for="description" class="form-label">描述（可选）</label>
+                        <textarea class="form-control" id="description" name="description" 
+                                  rows="3" placeholder="请输入交易描述..."></textarea>
+                    </div>
+
+                    <!-- 标签 -->
+                    <div class="mb-4">
+                        <label for="tags" class="form-label">标签（可选）</label>
+                        <input type="text" class="form-control" id="tags" name="tags" 
+                               placeholder="用英文逗号分隔多个标签，例如：餐饮,聚餐">
+                        <div class="form-text">
+                            <i class="bi bi-tag"></i>
+                            多个标签请用英文逗号分隔
+                        </div>
+                    </div>
+
+                    <!-- 提交按钮 -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="/account-books/{{ account_book.id }}/transactions" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i>
+                            取消
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i>
+                            保存交易
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 分类数据
+const categories = [
+    {% for category in categories %}
+    {
+        id: {{ category.id }},
+        name: "{{ category.name }}",
+        type: "{{ category.category_type }}",
+        icon: "{{ category.icon }}",
+        color: "{{ category.color }}"
+    }{% if !loop.last %},{% endif %}
+    {% endfor %}
+];
+
+// 更新分类选项
+function updateCategoryOptions() {
+    const transactionType = document.querySelector('input[name="transaction_type"]:checked').value;
+    const categorySelect = document.getElementById('category_id');
+    
+    // 清空现有选项
+    categorySelect.innerHTML = '<option value="">请选择分类</option>';
+    
+    // 根据交易类型过滤分类
+    const filteredCategories = categories.filter(cat => cat.type === transactionType);
+    
+    if (filteredCategories.length === 0) {
+        categorySelect.innerHTML = '<option value="">暂无可用分类</option>';
+        categorySelect.disabled = true;
+        
+        // 显示提示信息
+        showCategoryWarning(transactionType);
+    } else {
+        categorySelect.disabled = false;
+        filteredCategories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            categorySelect.appendChild(option);
+        });
+        
+        // 隐藏警告信息
+        hideCategoryWarning();
+    }
+}
+
+function showCategoryWarning(type) {
+    const typeName = type === 'income' ? '收入' : '支出';
+    const existingWarning = document.getElementById('categoryWarning');
+    if (existingWarning) {
+        existingWarning.remove();
+    }
+    
+    const warning = document.createElement('div');
+    warning.id = 'categoryWarning';
+    warning.className = 'alert alert-warning mt-2';
+    warning.innerHTML = `
+        <i class="bi bi-exclamation-triangle"></i>
+        该账本暂无可用的${typeName}分类，请先 
+        <a href="/account-books/{{ account_book.id }}/categories/new" class="alert-link">创建${typeName}分类</a>
+    `;
+    
+    document.getElementById('category_id').parentNode.appendChild(warning);
+}
+
+function hideCategoryWarning() {
+    const existingWarning = document.getElementById('categoryWarning');
+    if (existingWarning) {
+        existingWarning.remove();
+    }
+}
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', function() {
+    // 设置默认日期为今天
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('transaction_date').value = today;
+    
+    // 初始化分类选项
+    updateCategoryOptions();
+    
+    // 监听交易类型变化
+    document.querySelectorAll('input[name="transaction_type"]').forEach(radio => {
+        radio.addEventListener('change', updateCategoryOptions);
+    });
+    
+    // 表单验证
+    document.getElementById('transactionForm').addEventListener('submit', function(e) {
+        const categorySelect = document.getElementById('category_id');
+        if (!categorySelect.value || categorySelect.disabled) {
+            e.preventDefault();
+            const transactionType = document.querySelector('input[name="transaction_type"]:checked').value;
+            const typeName = transactionType === 'income' ? '收入' : '支出';
+            alert(`请先创建${typeName}分类，然后再创建交易记录。`);
+        }
+    });
+});
+</script>
+{% endblock %}
