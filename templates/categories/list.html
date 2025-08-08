@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}管理分类 - {{ account_book.name }}{% endblock %}
+
+{% block nav %}
+<ul class="navbar-nav ms-auto">
+    <li class="nav-item">
+        <a class="nav-link" href="/dashboard">仪表板</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/account-books">我的账本</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/auth/logout">退出登录</a>
+    </li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<!-- 成功消息显示 -->
+{% if !success.is_empty() %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle"></i>
+    {{ success }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<!-- 错误消息显示 -->
+{% if !error.is_empty() %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle"></i>
+    {{ error }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/account-books">我的账本</a></li>
+                <li class="breadcrumb-item"><a href="/account-books/{{ account_book.id }}">{{ account_book.name }}</a></li>
+                <li class="breadcrumb-item active">管理分类</li>
+            </ol>
+        </nav>
+        <h2>
+            <i class="bi bi-tags text-primary"></i>
+            管理分类 - {{ account_book.name }}
+        </h2>
+    </div>
+    <a href="/account-books/{{ account_book.id }}/categories/new" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i>
+        新建分类
+    </a>
+</div>
+
+<div class="row">
+    <!-- 收入分类 -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-arrow-up-circle"></i>
+                    收入分类 ({{ income_categories.len() }})
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if income_categories.is_empty() %}
+                <div class="text-center py-4">
+                    <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-2">还没有收入分类</p>
+                    <a href="/account-books/{{ account_book.id }}/categories/new" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-plus"></i>
+                        创建收入分类
+                    </a>
+                </div>
+                {% else %}
+                <div class="row">
+                    {% for category in income_categories %}
+                    <div class="col-md-12 mb-3">
+                        <div class="d-flex align-items-center justify-content-between p-3 border rounded">
+                            <div class="d-flex align-items-center">
+                                <div class="category-icon me-3" style="background-color: {{ category.color }};">
+                                    {% if !category.icon.is_empty() %}
+                                        <i class="bi bi-{{ category.icon }}"></i>
+                                    {% else %}
+                                        <i class="bi bi-tag"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">{{ category.name }}</h6>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock"></i>
+                                        {{ category.created_at.format("%Y-%m-%d") }}
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="/account-books/{{ account_book.id }}/categories/{{ category.id }}/edit" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button" 
+                                        class="btn btn-outline-danger btn-sm" 
+                                        onclick="confirmDelete({{ category.id }}, '{{ category.name }}', 'income')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 支出分类 -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-arrow-down-circle"></i>
+                    支出分类 ({{ expense_categories.len() }})
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if expense_categories.is_empty() %}
+                <div class="text-center py-4">
+                    <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-2">还没有支出分类</p>
+                    <a href="/account-books/{{ account_book.id }}/categories/new" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-plus"></i>
+                        创建支出分类
+                    </a>
+                </div>
+                {% else %}
+                <div class="row">
+                    {% for category in expense_categories %}
+                    <div class="col-md-12 mb-3">
+                        <div class="d-flex align-items-center justify-content-between p-3 border rounded">
+                            <div class="d-flex align-items-center">
+                                <div class="category-icon me-3" style="background-color: {{ category.color }};">
+                                    {% if !category.icon.is_empty() %}
+                                        <i class="bi bi-{{ category.icon }}"></i>
+                                    {% else %}
+                                        <i class="bi bi-tag"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">{{ category.name }}</h6>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock"></i>
+                                        {{ category.created_at.format("%Y-%m-%d") }}
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="/account-books/{{ account_book.id }}/categories/{{ category.id }}/edit" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button" 
+                                        class="btn btn-outline-danger btn-sm" 
+                                        onclick="confirmDelete({{ category.id }}, '{{ category.name }}', 'expense')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 操作提示 -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="bi bi-info-circle text-info"></i>
+                    操作提示
+                </h6>
+                <ul class="mb-0">
+                    <li>收入分类用于记录各种收入来源，如工资、奖金、投资收益等</li>
+                    <li>支出分类用于记录各种支出类型，如餐饮、交通、购物等</li>
+                    <li>可以为每个分类设置图标和颜色，便于快速识别</li>
+                    <li>删除分类前请确保该分类下没有交易记录</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 删除确认模态框 -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                    确认删除分类
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>您确定要删除分类 "<span id="deleteCategoryName"></span>" 吗？</p>
+                <p class="text-danger">
+                    <i class="bi bi-info-circle"></i>
+                    删除后将无法恢复，请确保该分类下没有交易记录。
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i>
+                        确认删除
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.category-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+</style>
+
+<script>
+function confirmDelete(categoryId, categoryName, categoryType) {
+    document.getElementById('deleteCategoryName').textContent = categoryName;
+    document.getElementById('deleteForm').action = 
+        `/account-books/{{ account_book.id }}/categories/${categoryId}/delete`;
+    
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

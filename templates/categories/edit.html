@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+
+{% block title %}编辑分类 - {{ category.name }}{% endblock %}
+
+{% block nav %}
+<ul class="navbar-nav ms-auto">
+    <li class="nav-item">
+        <a class="nav-link" href="/dashboard">仪表板</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/account-books">我的账本</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/auth/logout">退出登录</a>
+    </li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="bi bi-pencil-square text-primary"></i>
+                        编辑分类
+                    </h4>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="/account-books">我的账本</a></li>
+                            <li class="breadcrumb-item"><a href="/account-books/{{ account_book.id }}">{{ account_book.name }}</a></li>
+                            <li class="breadcrumb-item"><a href="/account-books/{{ account_book.id }}/categories">管理分类</a></li>
+                            <li class="breadcrumb-item active">编辑 - {{ category.name }}</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- 错误信息显示 -->
+                {% if !error.is_empty() %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    {{ error }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+
+                <form method="post" action="/account-books/{{ account_book.id }}/categories/{{ category.id }}/update">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">
+                                    <i class="bi bi-tag"></i>
+                                    分类名称 <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="name" 
+                                       name="name" 
+                                       value="{{ category.name }}"
+                                       required 
+                                       maxlength="100"
+                                       placeholder="请输入分类名称">
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle"></i>
+                                    例如：餐饮美食、交通出行、工资收入等
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="category_type" class="form-label">
+                                    <i class="bi bi-arrow-left-right"></i>
+                                    分类类型
+                                </label>
+                                <div class="form-control-plaintext">
+                                    {% if category.category_type == "income" %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-arrow-up-circle"></i> 
+                                            收入分类
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-arrow-down-circle"></i> 
+                                            支出分类
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle"></i>
+                                    分类类型创建后不可修改
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="icon" class="form-label">
+                                    <i class="bi bi-emoji-smile"></i>
+                                    图标
+                                </label>
+                                <select class="form-select" id="icon" name="icon">
+                                    <option value="">选择图标（可选）</option>
+                                    <optgroup label="收入图标">
+                                        <option value="cash-coin" {% if category.icon == "cash-coin" %}selected{% endif %}>💰 现金</option>
+                                        <option value="credit-card" {% if category.icon == "credit-card" %}selected{% endif %}>💳 银行卡</option>
+                                        <option value="currency-dollar" {% if category.icon == "currency-dollar" %}selected{% endif %}>💵 工资</option>
+                                        <option value="graph-up-arrow" {% if category.icon == "graph-up-arrow" %}selected{% endif %}>📈 投资</option>
+                                        <option value="gift" {% if category.icon == "gift" %}selected{% endif %}>🎁 红包</option>
+                                        <option value="house" {% if category.icon == "house" %}selected{% endif %}>🏠 租金</option>
+                                    </optgroup>
+                                    <optgroup label="支出图标">
+                                        <option value="cup-straw" {% if category.icon == "cup-straw" %}selected{% endif %}>🍴 餐饮</option>
+                                        <option value="car-front" {% if category.icon == "car-front" %}selected{% endif %}>🚗 交通</option>
+                                        <option value="cart" {% if category.icon == "cart" %}selected{% endif %}>🛒 购物</option>
+                                        <option value="controller" {% if category.icon == "controller" %}selected{% endif %}>🎮 娱乐</option>
+                                        <option value="hospital" {% if category.icon == "hospital" %}selected{% endif %}>🏥 医疗</option>
+                                        <option value="book" {% if category.icon == "book" %}selected{% endif %}>📚 教育</option>
+                                        <option value="house-door" {% if category.icon == "house-door" %}selected{% endif %}>🏠 住房</option>
+                                        <option value="lightning" {% if category.icon == "lightning" %}selected{% endif %}>⚡ 水电</option>
+                                        <option value="phone" {% if category.icon == "phone" %}selected{% endif %}>📱 通讯</option>
+                                        <option value="three-dots" {% if category.icon == "three-dots" %}selected{% endif %}>⋯ 其他</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="color" class="form-label">
+                                    <i class="bi bi-palette"></i>
+                                    颜色
+                                </label>
+                                <div class="input-group">
+                                    <input type="color" 
+                                           class="form-control form-control-color" 
+                                           id="color" 
+                                           name="color" 
+                                           value="{{ category.color }}"
+                                           title="选择颜色">
+                                    <span class="input-group-text">{{ category.color }}</span>
+                                </div>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle"></i>
+                                    选择一个代表性的颜色
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 预览区域 -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="bi bi-eye"></i>
+                            预览效果
+                        </label>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div id="preview-icon" class="category-icon me-3" style="background-color: {{ category.color }};">
+                                        {% if !category.icon.is_empty() %}
+                                            <i class="bi bi-{{ category.icon }}"></i>
+                                        {% else %}
+                                            <i class="bi bi-tag"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1" id="preview-name">{{ category.name }}</h6>
+                                        <small class="text-muted" id="preview-type">
+                                            {% if category.category_type == "income" %}
+                                                收入分类
+                                            {% else %}
+                                                支出分类
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 分类信息 -->
+                    <div class="mb-4">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="bi bi-info-circle"></i>
+                                    分类信息
+                                </h6>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar-plus"></i>
+                                            创建时间：{{ category.created_at.format("%Y-%m-%d %H:%M") }}
+                                        </small>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <small class="text-muted">
+                                            <i class="bi bi-sort-numeric-down"></i>
+                                            排序顺序：第{{ category.sort_order }}位
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <a href="/account-books/{{ account_book.id }}/categories" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i>
+                                返回分类列表
+                            </a>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-outline-danger me-2" 
+                                    onclick="confirmDelete({{ category.id }}, '{{ category.name }}')">
+                                <i class="bi bi-trash"></i>
+                                删除分类
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i>
+                                保存更新
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 删除确认模态框 -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                    确认删除分类
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>您确定要删除分类 "<span id="deleteCategoryName"></span>" 吗？</p>
+                <p class="text-danger">
+                    <i class="bi bi-info-circle"></i>
+                    删除后将无法恢复，请确保该分类下没有交易记录。
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i>
+                        确认删除
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.category-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+</style>
+
+<script>
+function confirmDelete(categoryId, categoryName) {
+    document.getElementById('deleteCategoryName').textContent = categoryName;
+    document.getElementById('deleteForm').action = 
+        `/account-books/{{ account_book.id }}/categories/${categoryId}/delete`;
+    
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const nameInput = document.getElementById('name');
+    const iconSelect = document.getElementById('icon');
+    const colorInput = document.getElementById('color');
+    const colorDisplay = colorInput.nextElementSibling;
+    
+    const previewName = document.getElementById('preview-name');
+    const previewIcon = document.getElementById('preview-icon');
+    const previewIconElement = previewIcon.querySelector('i');
+    
+    // 更新预览
+    function updatePreview() {
+        // 更新名称
+        const name = nameInput.value.trim();
+        previewName.textContent = name || '{{ category.name }}';
+        
+        // 更新图标
+        const icon = iconSelect.value;
+        if (icon) {
+            previewIconElement.className = `bi bi-${icon}`;
+        } else {
+            previewIconElement.className = 'bi bi-tag';
+        }
+        
+        // 更新颜色
+        const color = colorInput.value;
+        previewIcon.style.backgroundColor = color;
+        colorDisplay.textContent = color.toUpperCase();
+    }
+    
+    // 绑定事件监听器
+    nameInput.addEventListener('input', updatePreview);
+    iconSelect.addEventListener('change', updatePreview);
+    colorInput.addEventListener('input', updatePreview);
+    
+    // 表单验证
+    const form = document.querySelector('form[action*="update"]');
+    form.addEventListener('submit', function(e) {
+        const name = nameInput.value.trim();
+        
+        if (!name) {
+            e.preventDefault();
+            nameInput.classList.add('is-invalid');
+            nameInput.focus();
+            return;
+        }
+    });
+    
+    // 移除验证错误状态
+    nameInput.addEventListener('input', function() {
+        this.classList.remove('is-invalid');
+    });
+});
+</script>
+{% endblock %}

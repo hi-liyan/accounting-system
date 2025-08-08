@@ -8,6 +8,7 @@ pub struct Category {
     pub account_book_id: i64,
     pub name: String,
     #[serde(rename = "type")]
+    #[sqlx(rename = "type")]
     pub category_type: String,
     pub icon: Option<String>,
     pub color: Option<String>,
@@ -32,7 +33,7 @@ impl Category {
     ) -> anyhow::Result<Category> {
         let sort_order = Self::get_next_sort_order(pool, create_category.account_book_id).await?;
         
-        let category = sqlx::query_as::<_, Category>(
+        let result = sqlx::query(
             r#"
             INSERT INTO categories (account_book_id, name, type, icon, color, sort_order)
             VALUES (?, ?, ?, ?, ?, ?)
@@ -44,8 +45,12 @@ impl Category {
         .bind(&create_category.icon)
         .bind(&create_category.color)
         .bind(sort_order)
-        .fetch_one(pool)
+        .execute(pool)
         .await?;
+
+        let category_id = result.last_insert_id() as i64;
+        let category = Self::find_by_id(pool, category_id).await?
+            .ok_or_else(|| anyhow::anyhow!("Failed to retrieve created category"))?;
 
         Ok(category)
     }

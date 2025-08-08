@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}新建分类 - {{ account_book.name }}{% endblock %}
+
+{% block nav %}
+<ul class="navbar-nav ms-auto">
+    <li class="nav-item">
+        <a class="nav-link" href="/dashboard">仪表板</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/account-books">我的账本</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/auth/logout">退出登录</a>
+    </li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="bi bi-plus-circle text-primary"></i>
+                        新建分类
+                    </h4>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="/account-books">我的账本</a></li>
+                            <li class="breadcrumb-item"><a href="/account-books/{{ account_book.id }}">{{ account_book.name }}</a></li>
+                            <li class="breadcrumb-item"><a href="/account-books/{{ account_book.id }}/categories">管理分类</a></li>
+                            <li class="breadcrumb-item active">新建</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- 错误信息显示 -->
+                {% if !error.is_empty() %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    {{ error }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+
+                <form method="post" action="/account-books/{{ account_book.id }}/categories">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">
+                                    <i class="bi bi-tag"></i>
+                                    分类名称 <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="name" 
+                                       name="name" 
+                                       required 
+                                       maxlength="100"
+                                       placeholder="请输入分类名称">
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle"></i>
+                                    例如：餐饮美食、交通出行、工资收入等
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="category_type" class="form-label">
+                                    <i class="bi bi-arrow-left-right"></i>
+                                    分类类型 <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" id="category_type" name="category_type" required>
+                                    <option value="">请选择类型</option>
+                                    <option value="income">收入分类</option>
+                                    <option value="expense">支出分类</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="icon" class="form-label">
+                                    <i class="bi bi-emoji-smile"></i>
+                                    图标
+                                </label>
+                                <select class="form-select" id="icon" name="icon">
+                                    <option value="">选择图标（可选）</option>
+                                    <optgroup label="收入图标">
+                                        <option value="cash-coin">💰 现金</option>
+                                        <option value="credit-card">💳 银行卡</option>
+                                        <option value="currency-dollar">💵 工资</option>
+                                        <option value="graph-up-arrow">📈 投资</option>
+                                        <option value="gift">🎁 红包</option>
+                                        <option value="house">🏠 租金</option>
+                                    </optgroup>
+                                    <optgroup label="支出图标">
+                                        <option value="cup-straw">🍴 餐饮</option>
+                                        <option value="car-front">🚗 交通</option>
+                                        <option value="cart">🛒 购物</option>
+                                        <option value="controller">🎮 娱乐</option>
+                                        <option value="hospital">🏥 医疗</option>
+                                        <option value="book">📚 教育</option>
+                                        <option value="house-door">🏠 住房</option>
+                                        <option value="lightning">⚡ 水电</option>
+                                        <option value="phone">📱 通讯</option>
+                                        <option value="three-dots">⋯ 其他</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="color" class="form-label">
+                                    <i class="bi bi-palette"></i>
+                                    颜色
+                                </label>
+                                <div class="input-group">
+                                    <input type="color" 
+                                           class="form-control form-control-color" 
+                                           id="color" 
+                                           name="color" 
+                                           value="#007bff"
+                                           title="选择颜色">
+                                    <span class="input-group-text">#007bff</span>
+                                </div>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle"></i>
+                                    选择一个代表性的颜色
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 预览区域 -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="bi bi-eye"></i>
+                            预览效果
+                        </label>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div id="preview-icon" class="category-icon me-3" style="background-color: #007bff;">
+                                        <i class="bi bi-tag"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1" id="preview-name">分类名称预览</h6>
+                                        <small class="text-muted" id="preview-type">请选择分类类型</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <a href="/account-books/{{ account_book.id }}/categories" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i>
+                                返回分类列表
+                            </a>
+                        </div>
+                        <div>
+                            <button type="reset" class="btn btn-outline-warning me-2">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                                重置
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i>
+                                创建分类
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.category-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nameInput = document.getElementById('name');
+    const typeSelect = document.getElementById('category_type');
+    const iconSelect = document.getElementById('icon');
+    const colorInput = document.getElementById('color');
+    const colorDisplay = colorInput.nextElementSibling;
+    
+    const previewName = document.getElementById('preview-name');
+    const previewType = document.getElementById('preview-type');
+    const previewIcon = document.getElementById('preview-icon');
+    const previewIconElement = previewIcon.querySelector('i');
+    
+    // 更新预览
+    function updatePreview() {
+        // 更新名称
+        const name = nameInput.value.trim();
+        previewName.textContent = name || '分类名称预览';
+        
+        // 更新类型
+        const type = typeSelect.value;
+        if (type === 'income') {
+            previewType.textContent = '收入分类';
+        } else if (type === 'expense') {
+            previewType.textContent = '支出分类';
+        } else {
+            previewType.textContent = '请选择分类类型';
+        }
+        
+        // 更新图标
+        const icon = iconSelect.value;
+        if (icon) {
+            previewIconElement.className = `bi bi-${icon}`;
+        } else {
+            previewIconElement.className = 'bi bi-tag';
+        }
+        
+        // 更新颜色
+        const color = colorInput.value;
+        previewIcon.style.backgroundColor = color;
+        colorDisplay.textContent = color.toUpperCase();
+    }
+    
+    // 绑定事件监听器
+    nameInput.addEventListener('input', updatePreview);
+    typeSelect.addEventListener('change', updatePreview);
+    iconSelect.addEventListener('change', updatePreview);
+    colorInput.addEventListener('input', updatePreview);
+    
+    // 表单验证
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const name = nameInput.value.trim();
+        const type = typeSelect.value;
+        
+        if (!name) {
+            e.preventDefault();
+            nameInput.classList.add('is-invalid');
+            nameInput.focus();
+            return;
+        }
+        
+        if (!type) {
+            e.preventDefault();
+            typeSelect.classList.add('is-invalid');
+            typeSelect.focus();
+            return;
+        }
+    });
+    
+    // 移除验证错误状态
+    nameInput.addEventListener('input', function() {
+        this.classList.remove('is-invalid');
+    });
+    
+    typeSelect.addEventListener('change', function() {
+        this.classList.remove('is-invalid');
+    });
+    
+    // 重置按钮
+    const resetButton = document.querySelector('button[type="reset"]');
+    resetButton.addEventListener('click', function() {
+        setTimeout(updatePreview, 0); // 等待表单重置完成
+    });
+});
+</script>
+{% endblock %}
