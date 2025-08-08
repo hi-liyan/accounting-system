@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.name }} - 账本详情{% endblock %}
+
+{% block nav %}
+<ul class="navbar-nav ms-auto">
+    <li class="nav-item">
+        <a class="nav-link" href="/dashboard">仪表板</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/account-books">我的账本</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/auth/logout">退出登录</a>
+    </li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<!-- 成功消息显示 -->
+{% if !success.is_empty() %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle"></i>
+    {{ success }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<!-- 错误消息显示 -->
+{% if !error.is_empty() %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle"></i>
+    {{ error }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/account-books">我的账本</a></li>
+                <li class="breadcrumb-item active">{{ book.name }}</li>
+            </ol>
+        </nav>
+        <h2>
+            <i class="bi bi-journal-text text-primary"></i>
+            {{ book.name }}
+        </h2>
+    </div>
+    <div class="btn-group" role="group">
+        <a href="/account-books/{{ book.id }}/edit" class="btn btn-outline-primary">
+            <i class="bi bi-pencil"></i>
+            编辑账本
+        </a>
+        <button type="button" class="btn btn-outline-danger" 
+                onclick="confirmDelete({{ book.id }}, '{{ book.name }}')">
+            <i class="bi bi-trash"></i>
+            删除账本
+        </button>
+    </div>
+</div>
+
+<!-- 账本基本信息 -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    账本信息
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">账本名称：</dt>
+                            <dd class="col-sm-8">{{ book.name }}</dd>
+                            
+                            <dt class="col-sm-4">描述：</dt>
+                            <dd class="col-sm-8">
+                                {% if !book.description.is_empty() %}
+                                    {{ book.description }}
+                                {% else %}
+                                    <span class="text-muted">暂无描述</span>
+                                {% endif %}
+                            </dd>
+                            
+                            <dt class="col-sm-4">货币类型：</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-info">{{ book.currency }}</span>
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">月度周期：</dt>
+                            <dd class="col-sm-8">每月{{ book.cycle_start_day }}日开始</dd>
+                            
+                            <dt class="col-sm-4">创建时间：</dt>
+                            <dd class="col-sm-8">{{ book.created_at.format("%Y-%m-%d %H:%M") }}</dd>
+                            
+                            <dt class="col-sm-4">最后更新：</dt>
+                            <dd class="col-sm-8">{{ book.updated_at.format("%Y-%m-%d %H:%M") }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 账本统计信息 -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-receipt text-primary" style="font-size: 2rem;"></i>
+                <h4 class="mt-2">{{ transaction_count }}</h4>
+                <p class="text-muted mb-0">总交易数</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-arrow-up-circle text-success" style="font-size: 2rem;"></i>
+                <h4 class="mt-2 text-success">¥{{ total_income }}</h4>
+                <p class="text-muted mb-0">总收入</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-arrow-down-circle text-danger" style="font-size: 2rem;"></i>
+                <h4 class="mt-2 text-danger">¥{{ total_expense }}</h4>
+                <p class="text-muted mb-0">总支出</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 净收入/亏损 -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center">
+                {% if total_income >= total_expense %}
+                    <i class="bi bi-trophy text-warning" style="font-size: 3rem;"></i>
+                    <h3 class="mt-3 text-success">净收入：¥{{ total_income - total_expense }}</h3>
+                    <p class="text-muted">恭喜！您的收入大于支出</p>
+                {% else %}
+                    <i class="bi bi-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                    <h3 class="mt-3 text-danger">净亏损：¥{{ total_expense - total_income }}</h3>
+                    <p class="text-muted">支出超过了收入，建议控制支出</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 快速操作 -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning"></i>
+                    快速操作
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="/account-books/{{ book.id }}/categories" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-tags"></i>
+                            <br>
+                            管理分类
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/account-books/{{ book.id }}/transactions" class="btn btn-outline-success w-100">
+                            <i class="bi bi-plus-circle"></i>
+                            <br>
+                            记账
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/account-books/{{ book.id }}/transactions" class="btn btn-outline-info w-100">
+                            <i class="bi bi-list-ul"></i>
+                            <br>
+                            查看明细
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/account-books/{{ book.id }}/reports" class="btn btn-outline-warning w-100">
+                            <i class="bi bi-graph-up"></i>
+                            <br>
+                            统计报表
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 删除确认模态框 -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                    确认删除
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>您确定要删除账本 "<span id="deleteBookName"></span>" 吗？</p>
+                <p class="text-danger">
+                    <i class="bi bi-info-circle"></i>
+                    删除后将无法恢复，该账本下的所有交易记录也将被隐藏。
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i>
+                        确认删除
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(bookId, bookName) {
+    document.getElementById('deleteBookName').textContent = bookName;
+    document.getElementById('deleteForm').action = `/account-books/${bookId}/delete`;
+    
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

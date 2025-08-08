@@ -58,6 +58,10 @@ pub async fn create_app() -> anyhow::Result<Router> {
         // 账本路由
         .route("/account-books", get(account_book::list).post(account_book::create))
         .route("/account-books/new", get(account_book::show_new))
+        .route("/account-books/:id", get(account_book::detail))
+        .route("/account-books/:id/edit", get(account_book::show_edit))
+        .route("/account-books/:id/update", post(account_book::update))
+        .route("/account-books/:id/delete", post(account_book::delete))
         
         // 静态文件服务
         .nest_service("/static", ServeDir::new("static"))

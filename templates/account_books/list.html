@@ -14,6 +14,24 @@
 {% endblock %}
 
 {% block content %}
+<!-- 成功消息显示 -->
+{% if !success.is_empty() %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle"></i>
+    {{ success }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<!-- 错误消息显示 -->
+{% if !error.is_empty() %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle"></i>
+    {{ error }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>
         <i class="bi bi-journal-text"></i>

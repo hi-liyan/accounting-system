@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}编辑账本 - {{ book.name }}{% endblock %}
+
+{% block nav %}
+<ul class="navbar-nav ms-auto">
+    <li class="nav-item">
+        <a class="nav-link" href="/dashboard">仪表板</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/account-books">我的账本</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/auth/logout">退出登录</a>
+    </li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="bi bi-pencil-square text-primary"></i>
+                        编辑账本
+                    </h4>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="/account-books">我的账本</a></li>
+                            <li class="breadcrumb-item"><a href="/account-books/{{ book.id }}">{{ book.name }}</a></li>
+                            <li class="breadcrumb-item active">编辑</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- 错误信息显示 -->
+                {% if !error.is_empty() %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    {{ error }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+
+                <form method="post" action="/account-books/{{ book.id }}/update">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">
+                                    <i class="bi bi-journal-text"></i>
+                                    账本名称 <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="name" 
+                                       name="name" 
+                                       value="{{ book.name }}" 
+                                       required 
+                                       maxlength="255"
+                                       placeholder="请输入账本名称">
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle"></i>
+                                    给您的账本起一个好听的名字
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="currency" class="form-label">
+                                    <i class="bi bi-currency-exchange"></i>
+                                    货币类型
+                                </label>
+                                <select class="form-select" id="currency" name="currency">
+                                    <option value="CNY" {% if book.currency == "CNY" %}selected{% endif %}>人民币 (CNY)</option>
+                                    <option value="USD" {% if book.currency == "USD" %}selected{% endif %}>美元 (USD)</option>
+                                    <option value="EUR" {% if book.currency == "EUR" %}selected{% endif %}>欧元 (EUR)</option>
+                                    <option value="JPY" {% if book.currency == "JPY" %}selected{% endif %}>日元 (JPY)</option>
+                                    <option value="GBP" {% if book.currency == "GBP" %}selected{% endif %}>英镑 (GBP)</option>
+                                    <option value="HKD" {% if book.currency == "HKD" %}selected{% endif %}>港币 (HKD)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="cycle_start_day" class="form-label">
+                                    <i class="bi bi-calendar-event"></i>
+                                    月度周期起始日
+                                </label>
+                                <select class="form-select" id="cycle_start_day" name="cycle_start_day">
+                                    {% for day in 1..32 %}
+                                        <option value="{{ day }}" {% if book.cycle_start_day == day %}selected{% endif %}>
+                                            每月{{ day }}日开始
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle"></i>
+                                    用于月度统计的起始日期
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="bi bi-info-circle"></i>
+                                    账本状态
+                                </label>
+                                <div class="form-control-plaintext">
+                                    {% if book.is_active %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> 
+                                            正常使用中
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="bi bi-pause-circle"></i> 
+                                            已停用
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">
+                            <i class="bi bi-text-paragraph"></i>
+                            账本描述
+                        </label>
+                        <textarea class="form-control" 
+                                  id="description" 
+                                  name="description" 
+                                  rows="3" 
+                                  maxlength="500"
+                                  placeholder="请输入账本描述（可选）">{{ book.description }}</textarea>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle"></i>
+                            简单描述一下这个账本的用途
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="bi bi-clock-history"></i>
+                                    账本信息
+                                </h6>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar-plus"></i>
+                                            创建时间：{{ book.created_at.format("%Y-%m-%d %H:%M") }}
+                                        </small>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar-check"></i>
+                                            最后更新：{{ book.updated_at.format("%Y-%m-%d %H:%M") }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <a href="/account-books/{{ book.id }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i>
+                                返回详情
+                            </a>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-outline-danger me-2" 
+                                    onclick="confirmDelete({{ book.id }}, '{{ book.name }}')">
+                                <i class="bi bi-trash"></i>
+                                删除账本
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i>
+                                保存更新
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 删除确认模态框 -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                    确认删除
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>您确定要删除账本 "<span id="deleteBookName"></span>" 吗？</p>
+                <p class="text-danger">
+                    <i class="bi bi-info-circle"></i>
+                    删除后将无法恢复，该账本下的所有交易记录也将被隐藏。
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i>
+                        确认删除
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(bookId, bookName) {
+    document.getElementById('deleteBookName').textContent = bookName;
+    document.getElementById('deleteForm').action = `/account-books/${bookId}/delete`;
+    
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+
+// 表单验证
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const nameInput = document.getElementById('name');
+    
+    form.addEventListener('submit', function(e) {
+        if (nameInput.value.trim() === '') {
+            e.preventDefault();
+            nameInput.classList.add('is-invalid');
+            nameInput.focus();
+            
+            // 添加错误提示
+            let errorDiv = nameInput.parentElement.querySelector('.invalid-feedback');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.className = 'invalid-feedback';
+                nameInput.parentElement.appendChild(errorDiv);
+            }
+            errorDiv.textContent = '请输入账本名称';
+        }
+    });
+    
+    nameInput.addEventListener('input', function() {
+        if (this.value.trim() !== '') {
+            this.classList.remove('is-invalid');
+        }
+    });
+});
+</script>
+{% endblock %}
