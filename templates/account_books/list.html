@@ -1,124 +1,346 @@
 {% extends "base.html" %}
 
-{% block title %}我的账本 - 记账系统{% endblock %}
+{% block title %}我的账本 - 智能记账系统{% endblock %}
+
+{% block extra_head %}
+<style>
+    * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* 页面动画 */
+    .animate-fade-in,
+    .animate-slide-up,
+    .animate-scale-in {
+        opacity: 0;
+    }
+    
+    /* Apple风格卡片 */
+    .apple-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+    
+    .apple-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Apple风格按钮 */
+    .apple-button {
+        background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-weight: 600;
+        padding: 12px 20px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .apple-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .apple-button-secondary {
+        background: rgba(0, 122, 255, 0.1);
+        border: 1px solid rgba(0, 122, 255, 0.2);
+        border-radius: 10px;
+        color: #007AFF;
+        font-weight: 600;
+        padding: 8px 16px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+    }
+    
+    .apple-button-secondary:hover {
+        background: rgba(0, 122, 255, 0.15);
+        transform: translateY(-1px);
+        color: #007AFF;
+        text-decoration: none;
+    }
+    
+    .apple-button-danger {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 10px;
+        color: #EF4444;
+        font-weight: 600;
+        padding: 8px 16px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+    }
+    
+    .apple-button-danger:hover {
+        background: rgba(239, 68, 68, 0.15);
+        transform: translateY(-1px);
+        color: #EF4444;
+        text-decoration: none;
+    }
+    
+    /* 消息样式 */
+    .message-success {
+        background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        border: none;
+        margin-bottom: 24px;
+    }
+    
+    .message-error {
+        background: linear-gradient(135deg, #F87171 0%, #EF4444 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        border: none;
+        margin-bottom: 24px;
+    }
+    
+    /* 空状态样式 */
+    .empty-state {
+        background: white;
+        border-radius: 20px;
+        padding: 48px 32px;
+        text-align: center;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f0f0f0;
+    }
+    
+    .empty-state-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+        color: #1976D2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 2rem;
+    }
+    
+    /* 账本卡片样式 */
+    .book-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .book-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .book-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 16px;
+    }
+    
+    .currency-badge {
+        background: rgba(0, 122, 255, 0.1);
+        color: #007AFF;
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    
+    /* 模态框样式 */
+    .apple-modal .modal-content {
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    }
+    
+    .apple-modal .modal-header {
+        border-bottom: 1px solid #f0f0f0;
+        padding: 24px 24px 16px;
+    }
+    
+    .apple-modal .modal-body {
+        padding: 16px 24px;
+    }
+    
+    .apple-modal .modal-footer {
+        border-top: 1px solid #f0f0f0;
+        padding: 16px 24px 24px;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<!-- 成功消息显示 -->
-{% if !success.is_empty() %}
-<div class="alert alert-success alert-dismissible fade show" role="alert">
-    <i class="bi bi-check-circle"></i>
-    {{ success }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endif %}
+<div class="container-fluid px-4 py-6">
+    <!-- 成功消息显示 -->
+    {% if !success.is_empty() %}
+    <div class="message-success d-flex align-items-center gap-3 animate-fade-in">
+        <i class="bi bi-check-circle text-2xl"></i>
+        <span>{{ success }}</span>
+        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
 
-<!-- 错误消息显示 -->
-{% if !error.is_empty() %}
-<div class="alert alert-danger alert-dismissible fade show" role="alert">
-    <i class="bi bi-exclamation-triangle"></i>
-    {{ error }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endif %}
+    <!-- 错误消息显示 -->
+    {% if !error.is_empty() %}
+    <div class="message-error d-flex align-items-center gap-3 animate-fade-in">
+        <i class="bi bi-exclamation-triangle text-2xl"></i>
+        <span>{{ error }}</span>
+        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>
-        <i class="bi bi-journal-text"></i>
-        我的账本
-    </h2>
-    <a href="/account-books/new" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i>
-        新建账本
-    </a>
-</div>
+    <!-- 页面标题区域 -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-6 animate-fade-in">
+        <div>
+            <h1 class="h2 text-apple-gray-800 mb-2 font-weight-light">
+                <i class="bi bi-journals text-primary me-3"></i>
+                我的账本
+            </h1>
+            <p class="text-apple-gray-600 mb-0">管理您的所有记账账本</p>
+        </div>
+        <div class="mt-3 mt-md-0">
+            <a href="/account-books/new" class="apple-button">
+                <i class="bi bi-plus-circle"></i>
+                新建账本
+            </a>
+        </div>
+    </div>
 
-<div class="row">
+    <!-- 账本网格 -->
     {% if books.is_empty() %}
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body text-center py-5">
-                <i class="bi bi-journal-plus text-muted" style="font-size: 4rem;"></i>
-                <h4 class="text-muted mt-3">还没有账本</h4>
-                <p class="text-muted">创建您的第一个账本开始记账吧！</p>
-                <a href="/account-books/new" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i>
-                    创建账本
-                </a>
+    <div class="animate-slide-up">
+        <div class="empty-state">
+            <div class="empty-state-icon animate-float-gentle">
+                <i class="bi bi-journal-plus"></i>
             </div>
+            <h3 class="text-apple-gray-800 mb-3">还没有账本</h3>
+            <p class="text-apple-gray-600 mb-4 max-w-md mx-auto">创建您的第一个账本开始记账吧！</p>
+            <a href="/account-books/new" class="apple-button">
+                <i class="bi bi-plus-circle"></i>
+                创建账本
+            </a>
         </div>
     </div>
     {% else %}
-    {% for book in books %}
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <i class="bi bi-journal-text text-primary"></i>
-                    {{ book.name }}
-                </h5>
+    <div class="row g-4">
+        {% for book in books %}
+        <div class="col-lg-4 col-md-6">
+            <div class="book-card animate-scale-in" style="animation-delay: {{ loop.index0 }}00ms">
+                <div class="book-icon">
+                    <i class="bi bi-journal-text"></i>
+                </div>
+                
+                <h4 class="text-apple-gray-800 mb-2">{{ book.name }}</h4>
+                
                 {% if !book.description.is_empty() %}
-                <p class="card-text text-muted">{{ book.description }}</p>
+                <p class="text-apple-gray-600 mb-3 flex-grow-1">{{ book.description }}</p>
+                {% else %}
+                <p class="text-apple-gray-500 mb-3 flex-grow-1 fst-italic">暂无描述</p>
                 {% endif %}
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="badge bg-info">{{ book.currency }}</span>
-                    <small class="text-muted">
-                        <i class="bi bi-calendar3"></i>
+                
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <span class="currency-badge">{{ book.currency }}</span>
+                    <small class="text-apple-gray-500">
+                        <i class="bi bi-calendar3 me-1"></i>
                         {{ book.cycle_start_day }}日开始
                     </small>
                 </div>
-                <div class="d-flex justify-content-between">
-                    <a href="/account-books/{{ book.id }}" class="btn btn-outline-primary btn-sm">
+                
+                <div class="d-flex flex-column gap-3">
+                    <a href="/account-books/{{ book.id }}" class="apple-button w-100 justify-content-center">
                         <i class="bi bi-eye"></i>
                         查看详情
                     </a>
-                    <div class="btn-group" role="group">
-                        <a href="/account-books/{{ book.id }}/edit" class="btn btn-outline-secondary btn-sm">
+                    
+                    <div class="d-flex gap-2">
+                        <a href="/account-books/{{ book.id }}/edit" class="apple-button-secondary flex-grow-1 justify-content-center">
                             <i class="bi bi-pencil"></i>
                             编辑
                         </a>
-                        <button type="button" class="btn btn-outline-danger btn-sm" 
+                        <button type="button" class="apple-button-danger flex-grow-1 justify-content-center" 
                                 onclick="confirmDelete({{ book.id }}, '{{ book.name }}')">
                             <i class="bi bi-trash"></i>
                             删除
                         </button>
                     </div>
                 </div>
-            </div>
-            <div class="card-footer bg-transparent">
-                <small class="text-muted">
-                    <i class="bi bi-clock"></i>
-                    创建于 {{ book.created_at.format("%Y-%m-%d %H:%M") }}
-                </small>
+                
+                <div class="mt-4 pt-3 border-top border-apple-gray-100">
+                    <small class="text-apple-gray-500">
+                        <i class="bi bi-clock me-1"></i>
+                        创建于 {{ book.created_at.format("%Y-%m-%d %H:%M") }}
+                    </small>
+                </div>
             </div>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
     {% endif %}
 </div>
 
-<!-- 删除确认模态框 -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
+<!-- Apple风格删除确认模态框 -->
+<div class="modal fade apple-modal" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-exclamation-triangle text-warning"></i>
-                    确认删除
+                <h5 class="modal-title d-flex align-items-center gap-3">
+                    <div class="w-8 h-8 bg-red-100 text-red-600 rounded-full d-flex align-items-center justify-content-center">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                    确认删除账本
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>您确定要删除账本 "<span id="deleteBookName"></span>" 吗？</p>
-                <p class="text-danger">
-                    <i class="bi bi-info-circle"></i>
-                    删除后将无法恢复，该账本下的所有交易记录也将被隐藏。
-                </p>
+                <p class="mb-3">您确定要删除账本 "<strong class="text-apple-gray-800" id="deleteBookName"></strong>" 吗？</p>
+                <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <div class="d-flex align-items-start gap-2 text-red-700">
+                        <i class="bi bi-info-circle mt-1"></i>
+                        <div class="small">
+                            <strong>注意：</strong>删除后将无法恢复，该账本下的所有交易记录也将被隐藏。
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="apple-button-secondary" data-bs-dismiss="modal">取消</button>
                 <form id="deleteForm" method="post" style="display: inline;">
                     <input type="hidden" name="_method" value="DELETE">
-                    <button type="submit" class="btn btn-danger">
+                    <button type="submit" class="apple-button-danger">
                         <i class="bi bi-trash"></i>
                         确认删除
                     </button>
@@ -129,6 +351,18 @@
 </div>
 
 <script>
+// 页面加载动画
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        document.querySelectorAll('.animate-fade-in, .animate-slide-up, .animate-scale-in').forEach((el, index) => {
+            setTimeout(() => {
+                el.style.opacity = '1';
+            }, index * 100);
+        });
+    }, 100);
+});
+
+// 删除确认函数
 function confirmDelete(bookId, bookName) {
     document.getElementById('deleteBookName').textContent = bookName;
     document.getElementById('deleteForm').action = `/account-books/${bookId}/delete`;
