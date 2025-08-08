@@ -1,93 +1,421 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能记账系统 - 现代化财务管理工具</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="/static/css/style.css" rel="stylesheet">
+    
+    <script>
+        // TailwindCSS配置 - 简约Apple风格
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'system': ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                    },
+                    colors: {
+                        'apple-gray': {
+                            50: '#fafafa',
+                            100: '#f5f5f5',
+                            200: '#e5e5e5',
+                            300: '#d4d4d4',
+                            400: '#a3a3a3',
+                            500: '#737373',
+                            600: '#525252',
+                            700: '#404040',
+                            800: '#262626',
+                            900: '#171717',
+                        }
+                    },
+                    animation: {
+                        'float-gentle': 'floatGentle 6s ease-in-out infinite',
+                        'slide-in': 'slideIn 1s ease-out forwards',
+                        'slide-in-delay': 'slideIn 1s ease-out 0.2s forwards',
+                        'slide-in-delay-2': 'slideIn 1s ease-out 0.4s forwards',
+                        'fade-up': 'fadeUp 0.8s ease-out forwards',
+                    },
+                    keyframes: {
+                        floatGentle: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-8px)' },
+                        },
+                        slideIn: {
+                            '0%': { opacity: '0', transform: 'translateY(30px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+    
+    <style>
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #fafafa;
+        }
+        
+        /* 隐藏动画元素初始状态 */
+        .animate-slide-in,
+        .animate-slide-in-delay,
+        .animate-slide-in-delay-2,
+        .animate-fade-up {
+            opacity: 0;
+        }
+        
+        /* 卡通化按钮 */
+        .cute-button {
+            background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+        }
+        
+        .cute-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+            color: white;
+        }
+        
+        /* 拟物化卡片 */
+        .neo-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+        
+        .neo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 可爱的图标容器 */
+        .icon-container {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+            color: #1976D2;
+        }
+        
+        /* 滚动触发器 */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+        
+        .scroll-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* 自定义全宽容器 */
+        .full-width {
+            width: 100vw;
+            position: relative;
+            left: 50%;
+            right: 50%;
+            margin-left: -50vw;
+            margin-right: -50vw;
+        }
+    </style>
+</head>
 
-{% block title %}首页 - 记账系统{% endblock %}
-
-{% block nav %}
-<ul class="navbar-nav ms-auto">
-    <li class="nav-item">
-        <a class="nav-link" href="/auth/login">登录</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="/auth/register">注册</a>
-    </li>
-</ul>
-{% endblock %}
-
-{% block content %}
-<div class="hero-section text-center py-5">
-    <div class="row">
-        <div class="col-lg-8 mx-auto">
-            <h1 class="display-4 text-primary mb-4">
-                <i class="bi bi-calculator-fill"></i>
+<body>
+    <!-- 主英雄区域 - 简约Apple风格 -->
+    <section class="full-width min-h-screen bg-white flex items-center justify-center py-20 overflow-hidden">
+        <div class="container mx-auto px-6 text-center max-w-6xl">
+            <!-- 主产品图标 -->
+            <div class="mb-12 animate-slide-in">
+                <div class="inline-block p-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl animate-float-gentle">
+                    <i class="bi bi-calculator text-6xl text-blue-600"></i>
+                </div>
+            </div>
+            
+            <!-- 主标题 -->
+            <h1 class="text-5xl md:text-6xl lg:text-7xl font-thin text-apple-gray-800 mb-6 animate-slide-in-delay">
                 智能记账系统
             </h1>
-            <p class="lead text-muted mb-4">
-                简单易用的个人财务管理工具，帮助您轻松掌控收支状况
+            
+            <!-- 副标题 -->
+            <p class="text-xl md:text-2xl text-apple-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed animate-slide-in-delay-2">
+                简单易用的个人财务管理工具<br>
+                让记账变得轻松有趣
             </p>
-            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                <a href="/auth/register" class="btn btn-primary btn-lg me-md-2">
-                    <i class="bi bi-person-plus"></i>
-                    立即注册
+            
+            <!-- 行动按钮 -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-up">
+                <a href="/auth/register" class="cute-button px-8 py-4 text-lg inline-flex items-center gap-3">
+                    <i class="bi bi-arrow-right-circle"></i>
+                    开始免费使用
                 </a>
-                <a href="/auth/login" class="btn btn-outline-primary btn-lg">
-                    <i class="bi bi-box-arrow-in-right"></i>
-                    登录账户
+                <a href="/auth/login" class="text-apple-gray-600 hover:text-apple-gray-800 transition-colors">
+                    已有账户？登录
                 </a>
             </div>
         </div>
-    </div>
-</div>
+    </section>
 
-<div class="features-section py-5">
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="bi bi-journal-text display-1 text-primary mb-3"></i>
-                    <h5 class="card-title">多账本管理</h5>
-                    <p class="card-text text-muted">
-                        创建多个账本，分别管理不同场景的收支记录
+    <!-- 核心功能展示 - 基于真实功能 -->
+    <section class="full-width py-20 bg-apple-gray-50">
+        <div class="container mx-auto px-6 max-w-7xl">
+            <!-- 区域标题 -->
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-4xl md:text-5xl font-light text-apple-gray-800 mb-6">核心功能</h2>
+                <p class="text-xl text-apple-gray-600 max-w-2xl mx-auto">专为个人用户设计的财务管理功能</p>
+            </div>
+            
+            <!-- 功能网格 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- 多账本管理 -->
+                <div class="neo-card p-8 text-center scroll-reveal">
+                    <div class="icon-container">
+                        <i class="bi bi-journals text-3xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-medium text-apple-gray-800 mb-4">多账本管理</h3>
+                    <p class="text-apple-gray-600 leading-relaxed">
+                        创建多个账本分别管理工作、生活、投资等不同用途的资金流向
+                    </p>
+                </div>
+                
+                <!-- 分类管理 -->
+                <div class="neo-card p-8 text-center scroll-reveal">
+                    <div class="icon-container bg-gradient-to-br from-green-50 to-emerald-50">
+                        <i class="bi bi-tags text-3xl text-green-600"></i>
+                    </div>
+                    <h3 class="text-2xl font-medium text-apple-gray-800 mb-4">智能分类</h3>
+                    <p class="text-apple-gray-600 leading-relaxed">
+                        自定义收入支出分类，支持拖拽排序，让账目结构更清晰
+                    </p>
+                </div>
+                
+                <!-- 交易记录 -->
+                <div class="neo-card p-8 text-center scroll-reveal">
+                    <div class="icon-container bg-gradient-to-br from-purple-50 to-violet-50">
+                        <i class="bi bi-receipt text-3xl text-purple-600"></i>
+                    </div>
+                    <h3 class="text-2xl font-medium text-apple-gray-800 mb-4">交易记录</h3>
+                    <p class="text-apple-gray-600 leading-relaxed">
+                        快速记录每笔收支，支持备注说明，历史记录一目了然
+                    </p>
+                </div>
+                
+                <!-- 数据统计 -->
+                <div class="neo-card p-8 text-center scroll-reveal">
+                    <div class="icon-container bg-gradient-to-br from-orange-50 to-amber-50">
+                        <i class="bi bi-bar-chart text-3xl text-orange-600"></i>
+                    </div>
+                    <h3 class="text-2xl font-medium text-apple-gray-800 mb-4">数据统计</h3>
+                    <p class="text-apple-gray-600 leading-relaxed">
+                        月度收支统计，图表可视化展示，帮您了解消费习惯
+                    </p>
+                </div>
+                
+                <!-- 报表分析 -->
+                <div class="neo-card p-8 text-center scroll-reveal">
+                    <div class="icon-container bg-gradient-to-br from-red-50 to-pink-50">
+                        <i class="bi bi-graph-up text-3xl text-red-600"></i>
+                    </div>
+                    <h3 class="text-2xl font-medium text-apple-gray-800 mb-4">报表分析</h3>
+                    <p class="text-apple-gray-600 leading-relaxed">
+                        详细的财务报表，多维度分析您的资金流向和趋势
+                    </p>
+                </div>
+                
+                <!-- 安全保护 -->
+                <div class="neo-card p-8 text-center scroll-reveal">
+                    <div class="icon-container bg-gradient-to-br from-teal-50 to-cyan-50">
+                        <i class="bi bi-shield-check text-3xl text-teal-600"></i>
+                    </div>
+                    <h3 class="text-2xl font-medium text-apple-gray-800 mb-4">数据安全</h3>
+                    <p class="text-apple-gray-600 leading-relaxed">
+                        邮箱验证，JWT身份认证，保护您的财务隐私安全
                     </p>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="bi bi-tags display-1 text-success mb-3"></i>
-                    <h5 class="card-title">分类统计</h5>
-                    <p class="card-text text-muted">
-                        智能分类管理，清晰了解各项支出占比
-                    </p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="bi bi-graph-up display-1 text-warning mb-3"></i>
-                    <h5 class="card-title">报表分析</h5>
-                    <p class="card-text text-muted">
-                        详细的月度报表，帮助您分析财务趋势
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+    </section>
 
-<div class="cta-section bg-light py-5 rounded">
-    <div class="text-center">
-        <h3 class="mb-4">开始您的智能记账之旅</h3>
-        <p class="text-muted mb-4">
-            注册只需30秒，立即体验专业的财务管理服务
-        </p>
-        <a href="/auth/register" class="btn btn-primary btn-lg">
-            <i class="bi bi-rocket-takeoff"></i>
-            免费开始使用
-        </a>
-    </div>
-</div>
-{% endblock %}
+    <!-- 使用步骤 -->
+    <section class="full-width py-20 bg-white">
+        <div class="container mx-auto px-6 max-w-6xl">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-4xl md:text-5xl font-light text-apple-gray-800 mb-6">简单三步开始记账</h2>
+                <p class="text-xl text-apple-gray-600">只需几分钟，即可开始管理您的财务</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- 步骤1 -->
+                <div class="text-center scroll-reveal">
+                    <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6">1</div>
+                    <h3 class="text-xl font-semibold text-apple-gray-800 mb-4">注册账户</h3>
+                    <p class="text-apple-gray-600">使用邮箱快速注册，验证邮箱即可开始使用</p>
+                </div>
+                
+                <!-- 步骤2 -->
+                <div class="text-center scroll-reveal">
+                    <div class="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6">2</div>
+                    <h3 class="text-xl font-semibold text-apple-gray-800 mb-4">创建账本</h3>
+                    <p class="text-apple-gray-600">创建您的第一个账本，设置收支分类</p>
+                </div>
+                
+                <!-- 步骤3 -->
+                <div class="text-center scroll-reveal">
+                    <div class="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6">3</div>
+                    <h3 class="text-xl font-semibold text-apple-gray-800 mb-4">开始记账</h3>
+                    <p class="text-apple-gray-600">记录每笔收支，查看统计分析</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 最终CTA -->
+    <section class="full-width py-20 bg-gradient-to-br from-blue-600 to-purple-600 text-white">
+        <div class="container mx-auto px-6 text-center max-w-4xl">
+            <div class="scroll-reveal">
+                <h2 class="text-4xl md:text-5xl font-light mb-6">开始您的智能记账之旅</h2>
+                <p class="text-xl mb-10 opacity-90">
+                    完全免费使用，无广告，无限制<br>
+                    立即注册，开始管理您的财务
+                </p>
+                
+                <div class="mb-8">
+                    <a href="/auth/register" class="inline-block bg-white text-blue-600 px-10 py-4 rounded-full text-xl font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg">
+                        立即免费注册
+                    </a>
+                </div>
+                
+                <!-- 信任标识 -->
+                <div class="flex flex-wrap justify-center items-center gap-6 text-white/70 text-sm">
+                    <div class="flex items-center gap-2">
+                        <i class="bi bi-check-circle"></i>
+                        <span>完全免费</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="bi bi-check-circle"></i>
+                        <span>无需绑卡</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="bi bi-check-circle"></i>
+                        <span>数据安全</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="bi bi-check-circle"></i>
+                        <span>随时导出</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="full-width bg-apple-gray-900 text-white py-16">
+        <div class="container mx-auto px-6 max-w-6xl">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- 品牌信息 -->
+                <div class="md:col-span-2">
+                    <div class="flex items-center gap-3 mb-6">
+                        <i class="bi bi-calculator text-2xl text-blue-400"></i>
+                        <span class="text-xl font-medium">智能记账系统</span>
+                    </div>
+                    <p class="text-apple-gray-400 mb-6 max-w-md">
+                        专为个人用户设计的简约记账工具，让财务管理变得简单有趣。
+                        我们致力于为用户提供最优质的记账体验。
+                    </p>
+                    <div class="flex gap-4">
+                        <a href="#" class="w-10 h-10 bg-apple-gray-800 rounded-full flex items-center justify-center hover:bg-apple-gray-700 transition-colors">
+                            <i class="bi bi-github"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-apple-gray-800 rounded-full flex items-center justify-center hover:bg-apple-gray-700 transition-colors">
+                            <i class="bi bi-envelope"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 功能链接 -->
+                <div>
+                    <h4 class="font-semibold mb-4">功能</h4>
+                    <ul class="space-y-2 text-apple-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">多账本管理</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">交易记录</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">数据统计</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">报表分析</a></li>
+                    </ul>
+                </div>
+                
+                <!-- 支持链接 -->
+                <div>
+                    <h4 class="font-semibold mb-4">支持</h4>
+                    <ul class="space-y-2 text-apple-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">使用帮助</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">常见问题</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">联系我们</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">隐私政策</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-apple-gray-800 mt-12 pt-8 text-center text-apple-gray-500">
+                <p>&copy; 2024 智能记账系统. 专注于为用户提供优质的记账体验.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 滚动显示动画
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('revealed');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+            
+            // 观察所有需要滚动显示的元素
+            document.querySelectorAll('.scroll-reveal').forEach(el => {
+                observer.observe(el);
+            });
+            
+            // 页面加载完成后显示入场动画
+            setTimeout(() => {
+                document.querySelectorAll('.animate-slide-in, .animate-slide-in-delay, .animate-slide-in-delay-2, .animate-fade-up').forEach(el => {
+                    el.style.opacity = '1';
+                });
+            }, 100);
+        });
+    </script>
+</body>
+</html>
