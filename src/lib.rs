@@ -51,7 +51,7 @@ pub async fn create_app() -> anyhow::Result<Router> {
         // 认证路由
         .route("/auth/login", get(auth::show_login).post(auth::login))
         .route("/auth/register", get(auth::show_register).post(auth::register))
-        .route("/auth/logout", post(auth::logout))
+        .route("/auth/logout", get(auth::logout).post(auth::logout))
         .route("/auth/verify/:token", get(auth::verify_email))
         .route("/auth/resend-verification", post(auth::resend_verification))
         

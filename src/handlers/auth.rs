@@ -15,12 +15,14 @@ use crate::utils::{RegisterForm, LoginForm};
 #[template(path = "auth/login.html")]
 struct LoginTemplate {
     error: String,
+    success: String,
 }
 
 #[derive(Template)]
 #[template(path = "auth/register.html")]
 struct RegisterTemplate {
     error: String,
+    success: String,
 }
 
 #[derive(Template)]
@@ -31,20 +33,23 @@ struct VerifyEmailTemplate {
 }
 
 #[derive(Deserialize)]
-pub struct ErrorQuery {
+pub struct AuthQuery {
     error: Option<String>,
+    success: Option<String>,
 }
 
-pub async fn show_login(Query(query): Query<ErrorQuery>) -> Html<String> {
+pub async fn show_login(Query(query): Query<AuthQuery>) -> Html<String> {
     let template = LoginTemplate {
         error: query.error.unwrap_or_default(),
+        success: query.success.unwrap_or_default(),
     };
     Html(template.render().unwrap())
 }
 
-pub async fn show_register(Query(query): Query<ErrorQuery>) -> Html<String> {
+pub async fn show_register(Query(query): Query<AuthQuery>) -> Html<String> {
     let template = RegisterTemplate {
         error: query.error.unwrap_or_default(),
+        success: query.success.unwrap_or_default(),
     };
     Html(template.render().unwrap())
 }
@@ -149,12 +154,16 @@ pub async fn verify_email(
 }
 
 pub async fn logout(jar: CookieJar) -> (CookieJar, Redirect) {
+    // 创建一个过期的cookie来清除auth_token
     let cookie = Cookie::build(("auth_token", ""))
         .path("/")
         .max_age(time::Duration::seconds(0))
+        .secure(false) // 在开发环境中设置为false，生产环境应该为true
+        .http_only(true) // 防止XSS攻击
         .build();
     
-    (jar.add(cookie), Redirect::to("/auth/login"))
+    // 重定向到登录页面并显示成功消息
+    (jar.add(cookie), Redirect::to("/auth/login?success=已成功退出登录"))
 }
 
 pub async fn resend_verification(
