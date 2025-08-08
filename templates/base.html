@@ -8,74 +8,355 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="/static/css/style.css" rel="stylesheet">
+    
+    <script>
+        // TailwindCSS配置 - 与其他页面保持一致
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'system': ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                    },
+                    colors: {
+                        'apple-gray': {
+                            50: '#fafafa',
+                            100: '#f5f5f5',
+                            200: '#e5e5e5',
+                            300: '#d4d4d4',
+                            400: '#a3a3a3',
+                            500: '#737373',
+                            600: '#525252',
+                            700: '#404040',
+                            800: '#262626',
+                            900: '#171717',
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.8s ease-out forwards',
+                        'slide-down': 'slideDown 0.3s ease-out forwards',
+                        'float-gentle': 'floatGentle 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(-10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        slideDown: {
+                            '0%': { opacity: '0', transform: 'translateY(-10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        floatGentle: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-4px)' },
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+    
     {% block extra_head %}{% endblock %}
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="bi bi-calculator-fill"></i>
-                记账系统
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                {% block nav %}
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/dashboard">
-                            <i class="bi bi-speedometer2"></i>
-                            仪表板
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/account-books">
-                            <i class="bi bi-journal-text"></i>
-                            账本
-                        </a>
-                    </li>
-                </ul>
-                
-                <ul class="navbar-nav">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle"></i>
-                            用户
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/profile">个人资料</a></li>
-                            <li><hr class="dropdown-divider"></li>
+<body class="bg-apple-gray-50 font-system">
+    <!-- Apple风格导航栏 -->
+    <nav class="bg-white/95 backdrop-blur-md border-b border-apple-gray-200 sticky top-0 z-50">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo区域 -->
+                <div class="flex items-center gap-3">
+                    <a href="/dashboard" class="flex items-center gap-3 text-apple-gray-800 hover:text-blue-600 transition-colors">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl flex items-center justify-center animate-float-gentle">
+                            <i class="bi bi-calculator text-xl text-blue-600"></i>
+                        </div>
+                        <span class="font-semibold text-lg hidden sm:block">智能记账</span>
+                    </a>
+                </div>
+
+                <!-- 中间区域留空，专注内容 -->
+                <div class="flex-1"></div>
+
+                <!-- 右侧功能区域 -->
+                <div class="flex items-center gap-2">
+                    {% block nav_right %}
+                    <!-- Profile下拉菜单 -->
+                    <div class="dropdown">
+                        <button class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-apple-gray-600 hover:text-apple-gray-800 hover:from-gray-200 hover:to-gray-300 transition-all duration-200 dropdown-toggle" 
+                                id="profileDropdown" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person text-lg"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end apple-dropdown-menu mt-2">
                             <li>
-                                <form action="/auth/logout" method="post" style="margin: 0;">
-                                    <button type="submit" class="dropdown-item">
-                                        <i class="bi bi-box-arrow-right"></i>
-                                        退出登录
+                                <div class="px-4 py-3 border-b border-apple-gray-100">
+                                    <div class="text-sm text-apple-gray-500">当前用户</div>
+                                    <div class="font-medium text-apple-gray-800">用户账户</div>
+                                </div>
+                            </li>
+                            <li>
+                                <a class="dropdown-item apple-dropdown-item" href="/profile/personal">
+                                    <i class="bi bi-person-gear me-2"></i>个人设置
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item apple-dropdown-item" href="/profile/system">
+                                    <i class="bi bi-gear me-2"></i>系统设置
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider my-2"></li>
+                            <li>
+                                <form action="/auth/logout" method="post" class="m-0">
+                                    <button type="submit" class="dropdown-item apple-dropdown-item text-red-600 hover:text-red-700 hover:bg-red-50">
+                                        <i class="bi bi-box-arrow-right me-2"></i>退出登录
                                     </button>
                                 </form>
                             </li>
                         </ul>
-                    </li>
-                </ul>
-                {% endblock %}
+                    </div>
+                    {% endblock %}
+                    
+                    <!-- 移动端菜单按钮 -->
+                    <button class="md:hidden w-10 h-10 rounded-lg flex items-center justify-center text-apple-gray-600 hover:text-apple-gray-800 hover:bg-apple-gray-100 transition-colors" 
+                            type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav">
+                        <i class="bi bi-list text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 移动端侧边菜单 -->
+        <div class="offcanvas offcanvas-end apple-offcanvas" tabindex="-1" id="mobileNav">
+            <div class="offcanvas-header border-b border-apple-gray-200">
+                <h5 class="offcanvas-title flex items-center gap-3">
+                    <i class="bi bi-calculator text-blue-600"></i>
+                    <span>智能记账</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+            </div>
+            <div class="offcanvas-body">
+                <div class="d-flex flex-column gap-2">
+                    <a href="/dashboard" class="apple-nav-link">
+                        <i class="bi bi-speedometer2"></i>
+                        <span>仪表板</span>
+                    </a>
+                    <a href="/account-books" class="apple-nav-link">
+                        <i class="bi bi-journals"></i>
+                        <span>我的账本</span>
+                    </a>
+                    
+                    <div class="border-t border-apple-gray-200 pt-4 mt-4">
+                        <a href="/profile/personal" class="apple-nav-link">
+                            <i class="bi bi-person-gear"></i>
+                            <span>个人设置</span>
+                        </a>
+                        <a href="/profile/system" class="apple-nav-link">
+                            <i class="bi bi-gear"></i>
+                            <span>系统设置</span>
+                        </a>
+                        <form action="/auth/logout" method="post" class="m-0">
+                            <button type="submit" class="apple-nav-link text-red-600 w-100 text-start">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>退出登录</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
 
-    <main class="container mt-4">
+    <main class="min-h-screen">
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="bg-light text-center text-muted py-3 mt-5">
-        <div class="container">
-            <p>&copy; 2024 记账系统. All rights reserved.</p>
+    <!-- 简洁Footer -->
+    <footer class="bg-white border-t border-apple-gray-200 mt-20">
+        <div class="container mx-auto px-4 py-6">
+            <div class="text-center text-sm text-apple-gray-500">
+                &copy; 2024 智能记账系统. 专注于为用户提供优质的记账体验.
+            </div>
         </div>
     </footer>
 
+    <!-- 添加Apple风格自定义样式 -->
+    <style>
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* Apple风格下拉菜单 */
+        .apple-dropdown-menu {
+            border-radius: 12px;
+            border: 1px solid #e5e5e5;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            padding: 8px;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
+        .apple-dropdown-item {
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 2px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .apple-dropdown-item:hover {
+            background: #f8f9fa;
+            transform: translateX(2px);
+        }
+        
+        .apple-dropdown-item.active {
+            background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+            color: white;
+        }
+        
+        .apple-dropdown-item.active:hover {
+            background: linear-gradient(135deg, #0056CC 0%, #4A4AE0 100%);
+            color: white;
+        }
+        
+        /* Apple风格侧边菜单 */
+        .apple-offcanvas {
+            border-radius: 16px 0 0 16px;
+            border: 1px solid #e5e5e5;
+            box-shadow: -8px 0 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .apple-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: #525252;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: none;
+            background: transparent;
+            font-size: 16px;
+        }
+        
+        .apple-nav-link:hover {
+            background: #f8f9fa;
+            color: #262626;
+            text-decoration: none;
+            transform: translateX(4px);
+        }
+        
+        .apple-nav-link.active {
+            background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+            color: white;
+        }
+        
+        .apple-nav-link.active:hover {
+            background: linear-gradient(135deg, #0056CC 0%, #4A4AE0 100%);
+            color: white;
+        }
+        
+        /* 添加毛玻璃效果支持 */
+        @supports (backdrop-filter: blur(10px)) {
+            nav {
+                backdrop-filter: blur(10px);
+            }
+        }
+        
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/js/app.js"></script>
+    
+    <script>
+        // 全局账本选择函数
+        function selectAccountBook(bookId, bookName) {
+            // 更新localStorage
+            localStorage.setItem('selectedAccountBook', bookId.toString());
+            
+            // 显示加载状态
+            const dropdown = document.getElementById('accountBookDropdown');
+            if (dropdown) {
+                const originalText = dropdown.innerHTML;
+                dropdown.innerHTML = `
+                    <i class="bi bi-hourglass-split"></i>
+                    <span class="hidden lg:inline">切换到 ${bookName}...</span>
+                `;
+                
+                // 3秒后恢复原状态
+                setTimeout(() => {
+                    dropdown.innerHTML = originalText;
+                }, 3000);
+            }
+            
+            // 跳转到指定账本的dashboard
+            window.location.href = `/dashboard?book_id=${bookId}`;
+        }
+        
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化页面动画
+            setTimeout(() => {
+                document.querySelectorAll('.animate-fade-in').forEach((el, index) => {
+                    setTimeout(() => {
+                        el.style.opacity = '1';
+                    }, index * 100);
+                });
+            }, 100);
+            
+            // 处理移动端菜单点击
+            const mobileNavLinks = document.querySelectorAll('#mobileNav .apple-nav-link');
+            mobileNavLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    // 如果不是表单提交按钮，则关闭侧边菜单
+                    if (this.tagName !== 'BUTTON') {
+                        const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('mobileNav'));
+                        if (offcanvas) {
+                            offcanvas.hide();
+                        }
+                    }
+                });
+            });
+            
+            // 处理下拉菜单键盘导航
+            const dropdowns = document.querySelectorAll('.dropdown-toggle');
+            dropdowns.forEach(dropdown => {
+                dropdown.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        this.click();
+                    }
+                });
+            });
+        });
+        
+        // 监听浏览器存储变化（支持多标签页同步）
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'selectedAccountBook' && e.newValue && e.newValue !== e.oldValue) {
+                // 其他标签页更改了选择，可以选择同步当前页面
+                console.log('账本选择已在其他标签页更改:', e.newValue);
+            }
+        });
+    </script>
+    
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>

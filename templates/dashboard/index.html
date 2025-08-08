@@ -1,240 +1,575 @@
 {% extends "base.html" %}
 
-{% block title %}仪表板 - 记账系统{% endblock %}
+{% block title %}仪表板 - 智能记账系统{% endblock %}
 
-{% block nav %}
-<ul class="navbar-nav ms-auto">
-    <!-- 账本选择器 -->
-    {% if !account_books.is_empty() %}
-    <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarBookDropdown" role="button" data-bs-toggle="dropdown">
+{% block extra_head %}
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    // TailwindCSS配置 - 与其他页面保持一致
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    'system': ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                },
+                colors: {
+                    'apple-gray': {
+                        50: '#fafafa',
+                        100: '#f5f5f5',
+                        200: '#e5e5e5',
+                        300: '#d4d4d4',
+                        400: '#a3a3a3',
+                        500: '#737373',
+                        600: '#525252',
+                        700: '#404040',
+                        800: '#262626',
+                        900: '#171717',
+                    }
+                },
+                animation: {
+                    'fade-in': 'fadeIn 0.8s ease-out forwards',
+                    'slide-up': 'slideUp 0.6s ease-out forwards',
+                    'float-gentle': 'floatGentle 6s ease-in-out infinite',
+                    'scale-in': 'scaleIn 0.5s ease-out forwards',
+                },
+                keyframes: {
+                    fadeIn: {
+                        '0%': { opacity: '0', transform: 'translateY(20px)' },
+                        '100%': { opacity: '1', transform: 'translateY(0)' },
+                    },
+                    slideUp: {
+                        '0%': { opacity: '0', transform: 'translateY(30px)' },
+                        '100%': { opacity: '1', transform: 'translateY(0)' },
+                    },
+                    floatGentle: {
+                        '0%, 100%': { transform: 'translateY(0px)' },
+                        '50%': { transform: 'translateY(-4px)' },
+                    },
+                    scaleIn: {
+                        '0%': { opacity: '0', transform: 'scale(0.95)' },
+                        '100%': { opacity: '1', transform: 'scale(1)' },
+                    },
+                },
+            },
+        },
+    }
+</script>
+
+<style>
+    * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+        background: #fafafa;
+    }
+    
+    /* 隐藏动画元素初始状态 */
+    .animate-fade-in,
+    .animate-slide-up,
+    .animate-scale-in {
+        opacity: 0;
+    }
+    
+    /* Apple风格卡片 */
+    .apple-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+    
+    .apple-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* 统计卡片 */
+    .stat-card {
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--accent-color, #007AFF);
+        border-radius: 20px 20px 0 0;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-card.income::before { background: linear-gradient(135deg, #34D399, #10B981); }
+    .stat-card.expense::before { background: linear-gradient(135deg, #F87171, #EF4444); }
+    .stat-card.balance::before { background: linear-gradient(135deg, #3B82F6, #1D4ED8); }
+    .stat-card.count::before { background: linear-gradient(135deg, #8B5CF6, #7C3AED); }
+    
+    /* Apple风格按钮 */
+    .apple-button {
+        background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-weight: 600;
+        padding: 12px 20px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .apple-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .apple-button-secondary {
+        background: rgba(0, 122, 255, 0.1);
+        border: 1px solid rgba(0, 122, 255, 0.2);
+        border-radius: 12px;
+        color: #007AFF;
+        font-weight: 600;
+        padding: 10px 18px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .apple-button-secondary:hover {
+        background: rgba(0, 122, 255, 0.15);
+        transform: translateY(-1px);
+        color: #007AFF;
+        text-decoration: none;
+    }
+    
+    .apple-button-success {
+        background: linear-gradient(135deg, #34D399, #10B981);
+        box-shadow: 0 4px 15px rgba(52, 211, 153, 0.3);
+    }
+    
+    .apple-button-success:hover {
+        box-shadow: 0 6px 20px rgba(52, 211, 153, 0.4);
+    }
+    
+    /* 交易列表项 */
+    .transaction-item {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+    }
+    
+    .transaction-item:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .transaction-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+    
+    .category-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    /* 进度条 */
+    .custom-progress {
+        height: 6px;
+        background: #f0f0f0;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 8px;
+    }
+    
+    .custom-progress-bar {
+        height: 100%;
+        background: var(--progress-color, #007AFF);
+        border-radius: 3px;
+        transition: width 0.8s ease;
+    }
+    
+    /* 消息样式 */
+    .message-success {
+        background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        border: none;
+        margin-bottom: 24px;
+    }
+    
+    .message-error {
+        background: linear-gradient(135deg, #F87171 0%, #EF4444 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        border: none;
+        margin-bottom: 24px;
+    }
+    
+    /* 空状态样式 */
+    .empty-state {
+        background: white;
+        border-radius: 20px;
+        padding: 48px 32px;
+        text-align: center;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f0f0f0;
+    }
+    
+    .empty-state-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+        color: #1976D2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 2rem;
+    }
+    
+    /* 下拉菜单样式优化 */
+    .dropdown-menu {
+        border-radius: 12px;
+        border: 1px solid #e5e5e5;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        padding: 8px;
+    }
+    
+    .dropdown-item {
+        border-radius: 8px;
+        padding: 10px 12px;
+        margin-bottom: 2px;
+        transition: all 0.2s ease;
+    }
+    
+    .dropdown-item:hover {
+        background: #f8f9fa;
+        transform: translateX(2px);
+    }
+    
+    .dropdown-item.active {
+        background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block nav_right %}
+<!-- 账本选择器 -->
+{% if !account_books.is_empty() %}
+<div class="hidden sm:block">
+    <div class="dropdown">
+        <button class="px-3 py-2 rounded-lg text-apple-gray-600 hover:text-apple-gray-800 hover:bg-apple-gray-100 transition-all duration-200 flex items-center gap-2 dropdown-toggle" 
+                id="accountBookDropdown" type="button" data-bs-toggle="dropdown">
             <i class="bi bi-journal-text"></i>
-            {% if let Some(book) = selected_book %}
-                {{ book.name }}
-            {% else %}
-                选择账本
-            {% endif %}
-        </a>
-        <ul class="dropdown-menu">
+            <span class="hidden lg:inline">
+                {% if let Some(book) = selected_book %}
+                    {{ book.name }}
+                {% else %}
+                    选择账本
+                {% endif %}
+            </span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end apple-dropdown-menu mt-2">
             {% for book in account_books %}
             <li>
-                <a class="dropdown-item {% if let Some(selected) = selected_book %}{% if selected.id == book.id %}active{% endif %}{% endif %}" 
+                <a class="dropdown-item apple-dropdown-item {% if let Some(selected) = selected_book %}{% if selected.id == book.id %}active{% endif %}{% endif %}" 
                    href="#" 
                    onclick="selectAccountBook({{ book.id }}, '{{ book.name }}'); return false;">
-                    <i class="bi bi-journal-text"></i>
-                    {{ book.name }}
-                    {% if !book.description.is_empty() %}
-                        <small class="text-muted d-block">{{ book.description }}</small>
-                    {% endif %}
+                    <div class="flex items-center gap-3">
+                        <i class="bi bi-journal-text"></i>
+                        <div>
+                            <div class="font-medium">{{ book.name }}</div>
+                            {% if !book.description.is_empty() %}
+                                <small class="text-apple-gray-500">{{ book.description }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
                 </a>
             </li>
             {% endfor %}
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="/account-books"><i class="bi bi-gear"></i> 管理账本</a></li>
-            <li><a class="dropdown-item" href="/account-books/new"><i class="bi bi-plus-circle"></i> 新建账本</a></li>
+            <li><hr class="dropdown-divider my-2"></li>
+            <li>
+                <a class="dropdown-item apple-dropdown-item" href="/account-books/new">
+                    <i class="bi bi-plus-circle me-2"></i>新建账本
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item apple-dropdown-item" href="/account-books">
+                    <i class="bi bi-gear me-2"></i>管理账本
+                </a>
+            </li>
         </ul>
-    </li>
-    {% endif %}
-    <li class="nav-item">
-        <a class="nav-link" href="/account-books">我的账本</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="/auth/logout">退出登录</a>
-    </li>
-</ul>
+    </div>
+</div>
+{% endif %}
+
+<!-- Profile下拉菜单 -->
+<div class="dropdown">
+    <button class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-apple-gray-600 hover:text-apple-gray-800 hover:from-gray-200 hover:to-gray-300 transition-all duration-200 dropdown-toggle" 
+            id="profileDropdown" type="button" data-bs-toggle="dropdown">
+        <i class="bi bi-person text-lg"></i>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end apple-dropdown-menu mt-2">
+        <li>
+            <div class="px-4 py-3 border-b border-apple-gray-100">
+                <div class="text-sm text-apple-gray-500">当前用户</div>
+                <div class="font-medium text-apple-gray-800">用户账户</div>
+            </div>
+        </li>
+        <li>
+            <a class="dropdown-item apple-dropdown-item" href="/profile/personal">
+                <i class="bi bi-person-gear me-2"></i>个人设置
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item apple-dropdown-item" href="/profile/system">
+                <i class="bi bi-gear me-2"></i>系统设置
+            </a>
+        </li>
+        <li><hr class="dropdown-divider my-2"></li>
+        <li>
+            <form action="/auth/logout" method="post" class="m-0">
+                <button type="submit" class="dropdown-item apple-dropdown-item text-red-600 hover:text-red-700 hover:bg-red-50">
+                    <i class="bi bi-box-arrow-right me-2"></i>退出登录
+                </button>
+            </form>
+        </li>
+    </ul>
+</div>
 {% endblock %}
 
 {% block content %}
-<!-- 成功消息显示 -->
-{% if !success.is_empty() %}
-<div class="alert alert-success alert-dismissible fade show" role="alert">
-    <i class="bi bi-check-circle"></i>
-    {{ success }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endif %}
-
-<!-- 错误消息显示 -->
-{% if !error.is_empty() %}
-<div class="alert alert-danger alert-dismissible fade show" role="alert">
-    <i class="bi bi-exclamation-triangle"></i>
-    {{ error }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endif %}
-
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2>
-            <i class="bi bi-speedometer2 text-primary"></i>
-            欢迎回来！
-        </h2>
-        {% if let Some(book) = selected_book %}
-            <p class="text-muted mb-0">
-                <i class="bi bi-journal-text"></i>
-                当前账本：<strong>{{ book.name }}</strong>
-                <span class="badge bg-info ms-2">{{ book.currency }}</span>
-            </p>
-        {% endif %}
+<div class="container-fluid px-4 py-6">
+    <!-- 成功消息显示 -->
+    {% if !success.is_empty() %}
+    <div class="message-success d-flex align-items-center gap-3 animate-fade-in">
+        <i class="bi bi-check-circle text-2xl"></i>
+        <span>{{ success }}</span>
+        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"></button>
     </div>
-    <div class="btn-group" role="group">
-        {% if let Some(book) = selected_book %}
-            <a href="/account-books/{{ book.id }}/transactions/new" class="btn btn-success">
-                <i class="bi bi-plus-square"></i>
-                快速记账
-            </a>
-            <a href="/account-books/{{ book.id }}/categories" class="btn btn-outline-primary">
-                <i class="bi bi-tags"></i>
-                管理分类
-            </a>
-        {% else %}
-            <a href="/account-books/new" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i>
-                新建账本
-            </a>
-        {% endif %}
-    </div>
-</div>
+    {% endif %}
 
-<!-- 如果没有账本 -->
-{% if account_books.is_empty() %}
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body text-center py-5">
-                <i class="bi bi-journal-plus text-primary" style="font-size: 4rem;"></i>
-                <h4 class="mt-3">欢迎使用记账系统</h4>
-                <p class="text-muted">您还没有创建任何账本，请先创建一个账本开始记账吧！</p>
-                <a href="/account-books/new" class="btn btn-primary btn-lg">
-                    <i class="bi bi-plus-circle"></i>
-                    创建我的第一个账本
+    <!-- 错误消息显示 -->
+    {% if !error.is_empty() %}
+    <div class="message-error d-flex align-items-center gap-3 animate-fade-in">
+        <i class="bi bi-exclamation-triangle text-2xl"></i>
+        <span>{{ error }}</span>
+        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <!-- 页面标题区域 -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-6 animate-fade-in">
+        <div>
+            <h1 class="h2 text-apple-gray-800 mb-2 font-weight-light">
+                <i class="bi bi-speedometer2 text-primary me-3"></i>
+                欢迎回来！
+            </h1>
+            {% if let Some(book) = selected_book %}
+                <p class="text-apple-gray-600 mb-0 d-flex align-items-center gap-2">
+                    <i class="bi bi-journal-text"></i>
+                    当前账本：<strong class="text-apple-gray-800">{{ book.name }}</strong>
+                    <span class="badge bg-light text-primary border">{{ book.currency }}</span>
+                </p>
+            {% endif %}
+        </div>
+        <div class="d-flex flex-column flex-sm-row gap-3 mt-3 mt-md-0">
+            {% if let Some(book) = selected_book %}
+                <a href="/account-books/{{ book.id }}/transactions/new" class="apple-button apple-button-success">
+                    <i class="bi bi-plus-square"></i>
+                    快速记账
                 </a>
-            </div>
+                <a href="/account-books/{{ book.id }}/categories" class="apple-button-secondary">
+                    <i class="bi bi-tags"></i>
+                    管理分类
+                </a>
+            {% else %}
+                <a href="/account-books/new" class="apple-button">
+                    <i class="bi bi-plus-circle"></i>
+                    新建账本
+                </a>
+            {% endif %}
         </div>
     </div>
-</div>
-{% else %}
 
-<!-- 统计卡片 -->
-<div class="row mb-4">
-    <div class="col-md-3 mb-3">
-        <div class="card bg-success text-white h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
+    <!-- 如果没有账本 -->
+    {% if account_books.is_empty() %}
+    <div class="animate-slide-up">
+        <div class="empty-state">
+            <div class="empty-state-icon animate-float-gentle">
+                <i class="bi bi-journal-plus"></i>
+            </div>
+            <h3 class="text-apple-gray-800 mb-3">欢迎使用智能记账系统</h3>
+            <p class="text-apple-gray-600 mb-4 max-w-md mx-auto">您还没有创建任何账本，请先创建一个账本开始您的记账之旅吧！</p>
+            <a href="/account-books/new" class="apple-button">
+                <i class="bi bi-plus-circle"></i>
+                创建我的第一个账本
+            </a>
+        </div>
+    </div>
+    {% else %}
+
+    <!-- 统计卡片 -->
+    <div class="row g-4 mb-6">
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card income animate-scale-in">
+                <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <h6 class="card-title">{{ monthly_stats.month_name }}收入</h6>
-                        <h4 class="mb-0">¥{{ monthly_stats.income }}</h4>
+                        <p class="text-apple-gray-500 mb-1 small">{{ monthly_stats.month_name }}收入</p>
+                        <h3 class="text-apple-gray-800 mb-0">¥{{ monthly_stats.income }}</h3>
                     </div>
-                    <div class="align-self-center">
-                        <i class="bi bi-arrow-up-circle-fill" style="font-size: 2rem;"></i>
+                    <div class="p-3 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl">
+                        <i class="bi bi-arrow-up-circle-fill text-3xl text-green-600"></i>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <div class="col-md-3 mb-3">
-        <div class="card bg-danger text-white h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card expense animate-scale-in" style="animation-delay: 0.1s">
+                <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <h6 class="card-title">{{ monthly_stats.month_name }}支出</h6>
-                        <h4 class="mb-0">¥{{ monthly_stats.expense }}</h4>
+                        <p class="text-apple-gray-500 mb-1 small">{{ monthly_stats.month_name }}支出</p>
+                        <h3 class="text-apple-gray-800 mb-0">¥{{ monthly_stats.expense }}</h3>
                     </div>
-                    <div class="align-self-center">
-                        <i class="bi bi-arrow-down-circle-fill" style="font-size: 2rem;"></i>
+                    <div class="p-3 bg-gradient-to-br from-red-100 to-pink-100 rounded-2xl">
+                        <i class="bi bi-arrow-down-circle-fill text-3xl text-red-600"></i>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <div class="col-md-3 mb-3">
-        <div class="card {% if monthly_stats.is_positive %}bg-primary{% else %}bg-warning{% endif %} text-white h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card balance animate-scale-in" style="animation-delay: 0.2s">
+                <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <h6 class="card-title">{{ monthly_stats.month_name }}结余</h6>
-                        <h4 class="mb-0">¥{{ monthly_stats.balance }}</h4>
+                        <p class="text-apple-gray-500 mb-1 small">{{ monthly_stats.month_name }}结余</p>
+                        <h3 class="text-apple-gray-800 mb-0">¥{{ monthly_stats.balance }}</h3>
                     </div>
-                    <div class="align-self-center">
+                    <div class="p-3 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl">
                         {% if monthly_stats.is_positive %}
-                            <i class="bi bi-wallet2" style="font-size: 2rem;"></i>
+                            <i class="bi bi-wallet2 text-3xl text-blue-600"></i>
                         {% else %}
-                            <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i>
+                            <i class="bi bi-exclamation-triangle text-3xl text-yellow-600"></i>
                         {% endif %}
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <div class="col-md-3 mb-3">
-        <div class="card bg-info text-white h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card count animate-scale-in" style="animation-delay: 0.3s">
+                <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <h6 class="card-title">{{ monthly_stats.month_name }}笔数</h6>
-                        <h4 class="mb-0">{{ monthly_stats.transaction_count }}</h4>
+                        <p class="text-apple-gray-500 mb-1 small">{{ monthly_stats.month_name }}笔数</p>
+                        <h3 class="text-apple-gray-800 mb-0">{{ monthly_stats.transaction_count }}</h3>
                     </div>
-                    <div class="align-self-center">
-                        <i class="bi bi-receipt" style="font-size: 2rem;"></i>
+                    <div class="p-3 bg-gradient-to-br from-purple-100 to-violet-100 rounded-2xl">
+                        <i class="bi bi-receipt text-3xl text-purple-600"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="row">
-    <!-- 最近交易 -->
-    <div class="col-lg-8 mb-4">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="bi bi-clock-history"></i>
-                    最近交易
-                </h5>
-                {% if let Some(book) = selected_book %}
-                    <a href="/account-books/{{ book.id }}/transactions" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-list-ul"></i>
-                        查看全部
-                    </a>
-                {% endif %}
-            </div>
-            <div class="card-body">
-                {% if recent_transactions.is_empty() %}
-                <div class="text-center text-muted py-4">
-                    <i class="bi bi-receipt" style="font-size: 3rem;"></i>
-                    <p class="mt-3">暂无交易记录</p>
+    <div class="row g-4">
+        <!-- 最近交易 -->
+        <div class="col-lg-8">
+            <div class="apple-card p-6 animate-slide-up">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="text-apple-gray-800 mb-0 d-flex align-items-center gap-3">
+                        <i class="bi bi-clock-history text-primary"></i>
+                        最近交易
+                    </h4>
                     {% if let Some(book) = selected_book %}
-                        <a href="/account-books/{{ book.id }}/transactions/new" class="btn btn-primary">
+                        <a href="/account-books/{{ book.id }}/transactions" class="apple-button-secondary">
+                            <i class="bi bi-list-ul"></i>
+                            查看全部
+                        </a>
+                    {% endif %}
+                </div>
+                
+                {% if recent_transactions.is_empty() %}
+                <div class="text-center py-5">
+                    <div class="empty-state-icon animate-float-gentle">
+                        <i class="bi bi-receipt"></i>
+                    </div>
+                    <h5 class="text-apple-gray-800 mb-3">暂无交易记录</h5>
+                    <p class="text-apple-gray-600 mb-4">开始记录您的第一笔交易吧！</p>
+                    {% if let Some(book) = selected_book %}
+                        <a href="/account-books/{{ book.id }}/transactions/new" class="apple-button">
                             <i class="bi bi-plus-circle"></i>
                             开始记账
                         </a>
                     {% endif %}
                 </div>
                 {% else %}
-                <div class="list-group list-group-flush">
+                <div class="space-y-3">
                     {% for transaction in recent_transactions %}
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center">
-                            <div class="transaction-icon me-3" style="background-color: {{ transaction.category_color }};">
+                    <div class="transaction-item d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="transaction-icon" style="background-color: {{ transaction.category_color }};">
                                 <i class="bi bi-{{ transaction.category_icon }}"></i>
                             </div>
                             <div>
-                                <h6 class="mb-1">{{ transaction.category_name }}</h6>
+                                <h6 class="text-apple-gray-800 mb-1">{{ transaction.category_name }}</h6>
                                 {% if !transaction.description.is_empty() %}
-                                    <p class="mb-1 text-muted">{{ transaction.description }}</p>
+                                    <p class="text-apple-gray-500 mb-1 small">{{ transaction.description }}</p>
                                 {% endif %}
-                                <small class="text-muted">{{ transaction.transaction_date.format("%Y-%m-%d") }}</small>
+                                <small class="text-apple-gray-400">{{ transaction.transaction_date.format("%Y-%m-%d") }}</small>
                             </div>
                         </div>
                         <div class="text-end">
                             {% if transaction.transaction_type == "income" %}
-                                <span class="text-success fw-bold">+¥{{ transaction.amount }}</span>
+                                <span class="text-green-600 font-semibold">+¥{{ transaction.amount }}</span>
                             {% else %}
-                                <span class="text-danger fw-bold">-¥{{ transaction.amount }}</span>
+                                <span class="text-red-600 font-semibold">-¥{{ transaction.amount }}</span>
                             {% endif %}
                         </div>
                     </div>
@@ -243,78 +578,74 @@
                 {% endif %}
             </div>
         </div>
-    </div>
-    
-    <!-- 快速操作 -->
-    <div class="col-lg-4 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-lightning"></i>
+        
+        <!-- 快速操作 -->
+        <div class="col-lg-4">
+            <div class="apple-card p-6 animate-slide-up" style="animation-delay: 0.1s">
+                <h4 class="text-apple-gray-800 mb-4 d-flex align-items-center gap-3">
+                    <i class="bi bi-lightning text-warning"></i>
                     快速操作
-                </h5>
-            </div>
-            <div class="card-body">
+                </h4>
+                
                 {% if let Some(book) = selected_book %}
-                <div class="d-grid gap-2">
-                    <a href="/account-books/{{ book.id }}/transactions/new" class="btn btn-success">
+                <div class="d-flex flex-column gap-3">
+                    <a href="/account-books/{{ book.id }}/transactions/new" class="apple-button apple-button-success">
                         <i class="bi bi-plus-circle"></i>
                         记一笔账
                     </a>
-                    <a href="/account-books/{{ book.id }}/categories" class="btn btn-outline-primary">
+                    <a href="/account-books/{{ book.id }}/categories" class="apple-button-secondary">
                         <i class="bi bi-tags"></i>
                         管理分类
                     </a>
-                    <a href="/account-books/{{ book.id }}" class="btn btn-outline-info">
+                    <a href="/account-books/{{ book.id }}" class="apple-button-secondary">
                         <i class="bi bi-eye"></i>
                         账本详情
                     </a>
-                    <a href="/account-books/{{ book.id }}/transactions" class="btn btn-outline-secondary">
+                    <a href="/account-books/{{ book.id }}/transactions" class="apple-button-secondary">
                         <i class="bi bi-list-ul"></i>
                         交易明细
                     </a>
                 </div>
                 {% else %}
-                <div class="text-center text-muted py-3">
-                    <i class="bi bi-journal-plus" style="font-size: 2rem;"></i>
-                    <p class="mt-2">请先选择一个账本</p>
+                <div class="text-center py-4">
+                    <div class="empty-state-icon animate-float-gentle">
+                        <i class="bi bi-journal-plus"></i>
+                    </div>
+                    <p class="text-apple-gray-600 mb-3">请先选择一个账本</p>
                 </div>
                 {% endif %}
             </div>
         </div>
     </div>
-</div>
 
-<!-- 支出分类统计 -->
-{% if !category_stats.is_empty() %}
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-pie-chart"></i>
+    <!-- 支出分类统计 -->
+    {% if !category_stats.is_empty() %}
+    <div class="row mt-6">
+        <div class="col-12">
+            <div class="apple-card p-6 animate-slide-up" style="animation-delay: 0.2s">
+                <h4 class="text-apple-gray-800 mb-4 d-flex align-items-center gap-3">
+                    <i class="bi bi-pie-chart text-info"></i>
                     {{ monthly_stats.month_name }}支出分类统计
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
+                </h4>
+                
+                <div class="row g-4">
                     {% for stat in category_stats %}
-                    <div class="col-md-6 col-lg-4 mb-3">
-                        <div class="d-flex align-items-center">
-                            <div class="category-icon me-3" style="background-color: {{ stat.color }};">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="category-icon" style="background-color: {{ stat.color }};">
                                 <i class="bi bi-{{ stat.icon }}"></i>
                             </div>
                             <div class="flex-grow-1">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-1">{{ stat.name }}</h6>
-                                    <span class="text-danger fw-bold">¥{{ stat.amount }}</span>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h6 class="text-apple-gray-800 mb-0">{{ stat.name }}</h6>
+                                    <span class="text-red-600 font-semibold">¥{{ stat.amount }}</span>
                                 </div>
-                                <div class="progress" style="height: 6px;">
-                                    <div class="progress-bar" role="progressbar" 
-                                         style="width: {{ stat.percentage }}%; background-color: {{ stat.color }};">
+                                <div class="custom-progress">
+                                    <div class="custom-progress-bar" 
+                                         style="width: {{ stat.percentage }}%; --progress-color: {{ stat.color }};">
                                     </div>
                                 </div>
-                                <small class="text-muted">{{ stat.count }}笔</small>
+                                <small class="text-apple-gray-500 mt-1 d-block">{{ stat.count }}笔交易</small>
                             </div>
                         </div>
                     </div>
@@ -323,37 +654,10 @@
             </div>
         </div>
     </div>
+    {% endif %}
+
+    {% endif %}
 </div>
-{% endif %}
-
-{% endif %}
-
-<style>
-.transaction-icon,
-.category-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.2rem;
-}
-
-.list-group-item {
-    border-left: none;
-    border-right: none;
-}
-
-.list-group-item:first-child {
-    border-top: none;
-}
-
-.list-group-item:last-child {
-    border-bottom: none;
-}
-</style>
 
 <script>
 // 账本偏好管理 - 混合存储方案
@@ -367,6 +671,18 @@ class AccountBookPreference {
     init() {
         // 页面加载时检查localStorage与当前选择是否一致
         this.syncWithLocalStorage();
+        this.initAnimations();
+    }
+
+    // 初始化页面动画
+    initAnimations() {
+        setTimeout(() => {
+            document.querySelectorAll('.animate-fade-in, .animate-slide-up, .animate-scale-in').forEach((el, index) => {
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                }, index * 50);
+            });
+        }, 100);
     }
 
     // 同步localStorage与当前状态

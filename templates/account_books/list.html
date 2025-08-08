@@ -2,17 +2,6 @@
 
 {% block title %}我的账本 - 记账系统{% endblock %}
 
-{% block nav %}
-<ul class="navbar-nav ms-auto">
-    <li class="nav-item">
-        <a class="nav-link" href="/dashboard">仪表板</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="/auth/logout">退出登录</a>
-    </li>
-</ul>
-{% endblock %}
-
 {% block content %}
 <!-- 成功消息显示 -->
 {% if !success.is_empty() %}
