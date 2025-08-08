@@ -10,6 +10,7 @@ CREATE TABLE users (
     password_hash VARCHAR(255) NOT NULL COMMENT '密码哈希',
     is_verified BOOLEAN DEFAULT FALSE COMMENT '邮箱是否已验证',
     verification_token VARCHAR(255) COMMENT '邮箱验证令牌',
+    last_selected_account_book_id BIGINT COMMENT '上次选择的账本ID',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     INDEX idx_email (email),
@@ -147,3 +148,8 @@ DELIMITER ;
 -- CREATE EVENT IF NOT EXISTS clean_expired_sessions
 -- ON SCHEDULE EVERY 1 HOUR
 -- DO CALL CleanExpiredSessions();
+
+-- 数据库升级脚本（为现有数据库添加新字段）
+-- 如果是新安装，上面的CREATE TABLE语句已包含此字段
+-- 如果是升级现有数据库，请执行下面的ALTER语句
+-- ALTER TABLE users ADD COLUMN last_selected_account_book_id BIGINT COMMENT '上次选择的账本ID' AFTER verification_token;

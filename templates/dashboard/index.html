@@ -2,32 +2,128 @@
 
 {% block title %}仪表板 - 记账系统{% endblock %}
 
+{% block nav %}
+<ul class="navbar-nav ms-auto">
+    <!-- 账本选择器 -->
+    {% if !account_books.is_empty() %}
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarBookDropdown" role="button" data-bs-toggle="dropdown">
+            <i class="bi bi-journal-text"></i>
+            {% if let Some(book) = selected_book %}
+                {{ book.name }}
+            {% else %}
+                选择账本
+            {% endif %}
+        </a>
+        <ul class="dropdown-menu">
+            {% for book in account_books %}
+            <li>
+                <a class="dropdown-item {% if let Some(selected) = selected_book %}{% if selected.id == book.id %}active{% endif %}{% endif %}" 
+                   href="#" 
+                   onclick="selectAccountBook({{ book.id }}, '{{ book.name }}'); return false;">
+                    <i class="bi bi-journal-text"></i>
+                    {{ book.name }}
+                    {% if !book.description.is_empty() %}
+                        <small class="text-muted d-block">{{ book.description }}</small>
+                    {% endif %}
+                </a>
+            </li>
+            {% endfor %}
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="/account-books"><i class="bi bi-gear"></i> 管理账本</a></li>
+            <li><a class="dropdown-item" href="/account-books/new"><i class="bi bi-plus-circle"></i> 新建账本</a></li>
+        </ul>
+    </li>
+    {% endif %}
+    <li class="nav-item">
+        <a class="nav-link" href="/account-books">我的账本</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/auth/logout">退出登录</a>
+    </li>
+</ul>
+{% endblock %}
+
 {% block content %}
+<!-- 成功消息显示 -->
+{% if !success.is_empty() %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle"></i>
+    {{ success }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<!-- 错误消息显示 -->
+{% if !error.is_empty() %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle"></i>
+    {{ error }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>
-        <i class="bi bi-speedometer2"></i>
-        欢迎回来！
-    </h2>
+    <div>
+        <h2>
+            <i class="bi bi-speedometer2 text-primary"></i>
+            欢迎回来！
+        </h2>
+        {% if let Some(book) = selected_book %}
+            <p class="text-muted mb-0">
+                <i class="bi bi-journal-text"></i>
+                当前账本：<strong>{{ book.name }}</strong>
+                <span class="badge bg-info ms-2">{{ book.currency }}</span>
+            </p>
+        {% endif %}
+    </div>
     <div class="btn-group" role="group">
-        <a href="/account-books/new" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i>
-            新建账本
-        </a>
-        <a href="/transactions/new" class="btn btn-success">
-            <i class="bi bi-plus-square"></i>
-            快速记账
-        </a>
+        {% if let Some(book) = selected_book %}
+            <a href="/account-books/{{ book.id }}/transactions/new" class="btn btn-success">
+                <i class="bi bi-plus-square"></i>
+                快速记账
+            </a>
+            <a href="/account-books/{{ book.id }}/categories" class="btn btn-outline-primary">
+                <i class="bi bi-tags"></i>
+                管理分类
+            </a>
+        {% else %}
+            <a href="/account-books/new" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i>
+                新建账本
+            </a>
+        {% endif %}
     </div>
 </div>
 
+<!-- 如果没有账本 -->
+{% if account_books.is_empty() %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-journal-plus text-primary" style="font-size: 4rem;"></i>
+                <h4 class="mt-3">欢迎使用记账系统</h4>
+                <p class="text-muted">您还没有创建任何账本，请先创建一个账本开始记账吧！</p>
+                <a href="/account-books/new" class="btn btn-primary btn-lg">
+                    <i class="bi bi-plus-circle"></i>
+                    创建我的第一个账本
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+
+<!-- 统计卡片 -->
 <div class="row mb-4">
     <div class="col-md-3 mb-3">
-        <div class="card bg-primary text-white h-100">
+        <div class="card bg-success text-white h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <h6 class="card-title">本月收入</h6>
-                        <h4 class="mb-0">¥0.00</h4>
+                        <h6 class="card-title">{{ monthly_stats.month_name }}收入</h6>
+                        <h4 class="mb-0">¥{{ monthly_stats.income }}</h4>
                     </div>
                     <div class="align-self-center">
                         <i class="bi bi-arrow-up-circle-fill" style="font-size: 2rem;"></i>
@@ -42,8 +138,8 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <h6 class="card-title">本月支出</h6>
-                        <h4 class="mb-0">¥0.00</h4>
+                        <h6 class="card-title">{{ monthly_stats.month_name }}支出</h6>
+                        <h4 class="mb-0">¥{{ monthly_stats.expense }}</h4>
                     </div>
                     <div class="align-self-center">
                         <i class="bi bi-arrow-down-circle-fill" style="font-size: 2rem;"></i>
@@ -54,15 +150,19 @@
     </div>
     
     <div class="col-md-3 mb-3">
-        <div class="card bg-success text-white h-100">
+        <div class="card {% if monthly_stats.is_positive %}bg-primary{% else %}bg-warning{% endif %} text-white h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <h6 class="card-title">结余</h6>
-                        <h4 class="mb-0">¥0.00</h4>
+                        <h6 class="card-title">{{ monthly_stats.month_name }}结余</h6>
+                        <h4 class="mb-0">¥{{ monthly_stats.balance }}</h4>
                     </div>
                     <div class="align-self-center">
-                        <i class="bi bi-wallet2" style="font-size: 2rem;"></i>
+                        {% if monthly_stats.is_positive %}
+                            <i class="bi bi-wallet2" style="font-size: 2rem;"></i>
+                        {% else %}
+                            <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -74,11 +174,11 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <h6 class="card-title">账本数量</h6>
-                        <h4 class="mb-0">0</h4>
+                        <h6 class="card-title">{{ monthly_stats.month_name }}笔数</h6>
+                        <h4 class="mb-0">{{ monthly_stats.transaction_count }}</h4>
                     </div>
                     <div class="align-self-center">
-                        <i class="bi bi-journal-text" style="font-size: 2rem;"></i>
+                        <i class="bi bi-receipt" style="font-size: 2rem;"></i>
                     </div>
                 </div>
             </div>
@@ -87,66 +187,306 @@
 </div>
 
 <div class="row">
+    <!-- 最近交易 -->
     <div class="col-lg-8 mb-4">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
                     <i class="bi bi-clock-history"></i>
                     最近交易
                 </h5>
+                {% if let Some(book) = selected_book %}
+                    <a href="/account-books/{{ book.id }}/transactions" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-list-ul"></i>
+                        查看全部
+                    </a>
+                {% endif %}
             </div>
             <div class="card-body">
-                <div class="text-center text-muted py-5">
+                {% if recent_transactions.is_empty() %}
+                <div class="text-center text-muted py-4">
                     <i class="bi bi-receipt" style="font-size: 3rem;"></i>
                     <p class="mt-3">暂无交易记录</p>
-                    <a href="/transactions/new" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i>
-                        开始记账
-                    </a>
+                    {% if let Some(book) = selected_book %}
+                        <a href="/account-books/{{ book.id }}/transactions/new" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i>
+                            开始记账
+                        </a>
+                    {% endif %}
                 </div>
+                {% else %}
+                <div class="list-group list-group-flush">
+                    {% for transaction in recent_transactions %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="transaction-icon me-3" style="background-color: {{ transaction.category_color }};">
+                                <i class="bi bi-{{ transaction.category_icon }}"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">{{ transaction.category_name }}</h6>
+                                {% if !transaction.description.is_empty() %}
+                                    <p class="mb-1 text-muted">{{ transaction.description }}</p>
+                                {% endif %}
+                                <small class="text-muted">{{ transaction.transaction_date.format("%Y-%m-%d") }}</small>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            {% if transaction.transaction_type == "income" %}
+                                <span class="text-success fw-bold">+¥{{ transaction.amount }}</span>
+                            {% else %}
+                                <span class="text-danger fw-bold">-¥{{ transaction.amount }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
     
+    <!-- 快速操作 -->
     <div class="col-lg-4 mb-4">
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">
-                    <i class="bi bi-journal-text"></i>
-                    我的账本
+                    <i class="bi bi-lightning"></i>
+                    快速操作
                 </h5>
             </div>
             <div class="card-body">
-                <div class="text-center text-muted py-4">
-                    <i class="bi bi-journal-plus" style="font-size: 3rem;"></i>
-                    <p class="mt-3">还没有账本</p>
-                    <a href="/account-books/new" class="btn btn-outline-primary">
+                {% if let Some(book) = selected_book %}
+                <div class="d-grid gap-2">
+                    <a href="/account-books/{{ book.id }}/transactions/new" class="btn btn-success">
                         <i class="bi bi-plus-circle"></i>
-                        创建账本
+                        记一笔账
+                    </a>
+                    <a href="/account-books/{{ book.id }}/categories" class="btn btn-outline-primary">
+                        <i class="bi bi-tags"></i>
+                        管理分类
+                    </a>
+                    <a href="/account-books/{{ book.id }}" class="btn btn-outline-info">
+                        <i class="bi bi-eye"></i>
+                        账本详情
+                    </a>
+                    <a href="/account-books/{{ book.id }}/transactions" class="btn btn-outline-secondary">
+                        <i class="bi bi-list-ul"></i>
+                        交易明细
                     </a>
                 </div>
+                {% else %}
+                <div class="text-center text-muted py-3">
+                    <i class="bi bi-journal-plus" style="font-size: 2rem;"></i>
+                    <p class="mt-2">请先选择一个账本</p>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
+<!-- 支出分类统计 -->
+{% if !category_stats.is_empty() %}
 <div class="row">
     <div class="col-12">
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">
                     <i class="bi bi-pie-chart"></i>
-                    支出分类统计
+                    {{ monthly_stats.month_name }}支出分类统计
                 </h5>
             </div>
             <div class="card-body">
-                <div class="text-center text-muted py-5">
-                    <i class="bi bi-graph-up" style="font-size: 3rem;"></i>
-                    <p class="mt-3">暂无数据可显示</p>
-                    <small>开始记账后，这里将显示您的支出分类统计图表</small>
+                <div class="row">
+                    {% for stat in category_stats %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="category-icon me-3" style="background-color: {{ stat.color }};">
+                                <i class="bi bi-{{ stat.icon }}"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-1">{{ stat.name }}</h6>
+                                    <span class="text-danger fw-bold">¥{{ stat.amount }}</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar" role="progressbar" 
+                                         style="width: {{ stat.percentage }}%; background-color: {{ stat.color }};">
+                                    </div>
+                                </div>
+                                <small class="text-muted">{{ stat.count }}笔</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endif %}
+
+{% endif %}
+
+<style>
+.transaction-icon,
+.category-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.list-group-item {
+    border-left: none;
+    border-right: none;
+}
+
+.list-group-item:first-child {
+    border-top: none;
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+</style>
+
+<script>
+// 账本偏好管理 - 混合存储方案
+class AccountBookPreference {
+    constructor() {
+        this.localStorageKey = 'selectedAccountBook';
+        this.currentBookId = {% if let Some(book) = selected_book %}{{ book.id }}{% else %}null{% endif %};
+        this.init();
+    }
+
+    init() {
+        // 页面加载时检查localStorage与当前选择是否一致
+        this.syncWithLocalStorage();
+    }
+
+    // 同步localStorage与当前状态
+    syncWithLocalStorage() {
+        const storedBookId = localStorage.getItem(this.localStorageKey);
+        
+        // 如果localStorage中的值与当前不一致，更新localStorage
+        if (this.currentBookId && storedBookId !== this.currentBookId.toString()) {
+            localStorage.setItem(this.localStorageKey, this.currentBookId.toString());
+        }
+    }
+
+    // 选择账本
+    async selectBook(bookId, bookName) {
+        // 1. 立即存储到localStorage（快速响应）
+        localStorage.setItem(this.localStorageKey, bookId.toString());
+        
+        // 2. 显示加载状态
+        this.showLoadingState(bookName);
+        
+        try {
+            // 3. 异步更新到服务器（不阻塞界面）
+            await this.updateServerPreference(bookId);
+            
+            // 4. 更新当前页面
+            window.location.href = `/dashboard?book_id=${bookId}`;
+        } catch (error) {
+            console.warn('服务器偏好更新失败，但本地存储已更新:', error);
+            // 即使服务器更新失败，仍然跳转页面
+            window.location.href = `/dashboard?book_id=${bookId}`;
+        }
+    }
+
+    // 显示加载状态
+    showLoadingState(bookName) {
+        const dropdownToggle = document.getElementById('navbarBookDropdown');
+        if (dropdownToggle) {
+            const originalText = dropdownToggle.innerHTML;
+            dropdownToggle.innerHTML = `
+                <i class="bi bi-hourglass-split"></i>
+                切换到 ${bookName}...
+            `;
+            
+            // 3秒后恢复原状态（防止网络慢时一直显示加载状态）
+            setTimeout(() => {
+                dropdownToggle.innerHTML = originalText;
+            }, 3000);
+        }
+    }
+
+    // 更新服务器端偏好
+    async updateServerPreference(bookId) {
+        const response = await fetch(`/api/preferences/account-book/${bookId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin' // 包含cookies用于身份验证
+        });
+
+        if (!response.ok) {
+            throw new Error(`服务器响应错误: ${response.status}`);
+        }
+
+        return await response.json();
+    }
+
+    // 获取当前选择的账本ID
+    getCurrentBookId() {
+        // 优先从URL参数获取
+        const urlParams = new URLSearchParams(window.location.search);
+        const bookIdFromUrl = urlParams.get('book_id');
+        if (bookIdFromUrl) {
+            return parseInt(bookIdFromUrl);
+        }
+
+        // 从localStorage获取
+        const bookIdFromLocal = localStorage.getItem(this.localStorageKey);
+        if (bookIdFromLocal) {
+            return parseInt(bookIdFromLocal);
+        }
+
+        // 返回服务器默认值
+        return this.currentBookId;
+    }
+}
+
+// 初始化账本偏好管理
+const accountBookPreference = new AccountBookPreference();
+
+// 全局函数供模板调用
+function selectAccountBook(bookId, bookName) {
+    accountBookPreference.selectBook(bookId, bookName);
+}
+
+// 页面加载完成后的初始化
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果URL中没有book_id参数，但localStorage中有值，则自动跳转（仅当当前没有选中账本时）
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookIdFromUrl = urlParams.get('book_id');
+    
+    if (!bookIdFromUrl && accountBookPreference.currentBookId === null) {
+        const bookIdFromLocal = localStorage.getItem('selectedAccountBook');
+        if (bookIdFromLocal && bookIdFromLocal !== 'null') {
+            // 直接跳转，避免reload造成闪烁
+            const newUrl = `/dashboard?book_id=${bookIdFromLocal}`;
+            window.location.href = newUrl;
+        }
+    }
+});
+
+// 监听浏览器存储变化（支持多标签页同步）
+window.addEventListener('storage', function(e) {
+    if (e.key === 'selectedAccountBook' && e.newValue && e.newValue !== e.oldValue) {
+        // 其他标签页更改了选择，同步当前页面
+        const newBookId = e.newValue;
+        if (newBookId && newBookId !== accountBookPreference.currentBookId?.toString()) {
+            window.location.href = `/dashboard?book_id=${newBookId}`;
+        }
+    }
+});
+</script>
 {% endblock %}

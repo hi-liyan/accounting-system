@@ -21,7 +21,7 @@ use config::AppConfig;
 use database::create_pool;
 use services::{AuthService, EmailService};
 use middleware::AppState;
-use handlers::{auth, dashboard, account_book, category};
+use handlers::{auth, dashboard, account_book, category, api};
 
 pub async fn create_app() -> anyhow::Result<Router> {
     // 加载配置
@@ -69,6 +69,10 @@ pub async fn create_app() -> anyhow::Result<Router> {
         .route("/account-books/:account_book_id/categories/:category_id/edit", get(category::show_edit))
         .route("/account-books/:account_book_id/categories/:category_id/update", post(category::update))
         .route("/account-books/:account_book_id/categories/:category_id/delete", post(category::delete))
+        
+        // API路由
+        .route("/api/preferences/account-book", post(api::update_account_book_preference))
+        .route("/api/preferences/account-book/:id", post(api::update_preference_by_path))
         
         // 静态文件服务
         .nest_service("/static", ServeDir::new("static"))

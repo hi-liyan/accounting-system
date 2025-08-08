@@ -9,6 +9,7 @@ pub struct User {
     pub password_hash: String,
     pub is_verified: bool,
     pub verification_token: Option<String>,
+    pub last_selected_account_book_id: Option<i64>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -98,6 +99,20 @@ impl User {
         sqlx::query("UPDATE users SET verification_token = ? WHERE email = ?")
             .bind(token)
             .bind(email)
+            .execute(pool)
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn update_last_selected_account_book(
+        pool: &crate::database::DbPool,
+        user_id: i64,
+        account_book_id: Option<i64>,
+    ) -> anyhow::Result<()> {
+        sqlx::query("UPDATE users SET last_selected_account_book_id = ? WHERE id = ?")
+            .bind(account_book_id)
+            .bind(user_id)
             .execute(pool)
             .await?;
 
