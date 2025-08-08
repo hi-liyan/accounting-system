@@ -1,6 +1,7 @@
 use lettre::{
-    message::header::ContentType, transport::smtp::authentication::Credentials, Message,
-    SmtpTransport, Transport,
+    message::header::ContentType, 
+    transport::smtp::authentication::Credentials, 
+    Message, SmtpTransport, Transport,
 };
 use anyhow::Result;
 use crate::config::SmtpConfig;
@@ -19,10 +20,20 @@ impl EmailService {
             smtp_config.password.clone(),
         );
 
-        let mailer = SmtpTransport::relay(&smtp_config.host)?
-            .port(smtp_config.port)
-            .credentials(creds)
-            .build();
+        // 为163邮箱配置SMTP传输
+        let mailer = if smtp_config.port == 465 {
+            // 465端口使用SSL加密
+            SmtpTransport::relay(&smtp_config.host)?
+                .port(smtp_config.port)
+                .credentials(creds)
+                .build()
+        } else {
+            // 587端口使用STARTTLS加密
+            SmtpTransport::starttls_relay(&smtp_config.host)?
+                .port(smtp_config.port)
+                .credentials(creds)
+                .build()
+        };
 
         Ok(EmailService {
             mailer,

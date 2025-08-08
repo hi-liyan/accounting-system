@@ -56,10 +56,15 @@ impl AuthService {
 
         User::create(pool, create_user).await?;
 
-        // 发送验证邮件
-        self.email_service
+        // 尝试发送验证邮件，但不因为邮件发送失败而影响注册成功
+        if let Err(e) = self.email_service
             .send_verification_email(&email, &verification_token)
-            .await?;
+            .await
+        {
+            // 记录邮件发送失败的日志，但不阻止注册流程
+            tracing::warn!("Failed to send verification email to {}: {}", email, e);
+            // 在生产环境中，你可能希望将这个错误记录到日志系统中
+        }
 
         Ok(())
     }

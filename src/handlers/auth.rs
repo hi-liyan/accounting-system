@@ -122,7 +122,7 @@ pub async fn register(
         .register(&app_state.db_pool, form.email, form.password)
         .await
     {
-        Ok(()) => Redirect::to("/auth/register?success=注册成功！请检查您的邮箱并点击验证链接"),
+        Ok(()) => Redirect::to("/auth/register?success=注册成功！如果您提供了正确的邮箱地址，我们已向您发送验证链接"),
         Err(e) => {
             let error_msg = e.to_string();
             Redirect::to(&format!("/auth/register?error={}", 
