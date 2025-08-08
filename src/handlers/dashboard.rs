@@ -262,9 +262,9 @@ async fn get_category_stats(pool: &crate::database::DbPool, account_book_id: i64
         SELECT c.name, c.icon, c.color, SUM(t.amount) as total_amount, COUNT(t.id) as transaction_count
         FROM categories c
         LEFT JOIN transactions t ON c.id = t.category_id 
-            AND t.type = 'expense' 
+            AND t.`type` = 'expense' 
             AND t.transaction_date BETWEEN ? AND ?
-        WHERE c.account_book_id = ? AND c.type = 'expense' AND c.is_active = TRUE
+        WHERE c.account_book_id = ? AND c.`type` = 'expense' AND c.is_active = TRUE
         GROUP BY c.id, c.name, c.icon, c.color
         HAVING total_amount > 0
         ORDER BY total_amount DESC

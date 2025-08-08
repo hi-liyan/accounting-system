@@ -10,6 +10,7 @@ pub struct Transaction {
     pub category_id: i64,
     pub amount: Decimal,
     #[serde(rename = "type")]
+    #[sqlx(rename = "type")]
     pub transaction_type: String,
     pub description: Option<String>,
     pub transaction_date: NaiveDate,
@@ -25,6 +26,7 @@ pub struct TransactionWithCategory {
     pub category_id: i64,
     pub amount: Decimal,
     #[serde(rename = "type")]
+    #[sqlx(rename = "type")]
     pub transaction_type: String,
     pub description: Option<String>,
     pub transaction_date: NaiveDate,
@@ -52,9 +54,9 @@ impl Transaction {
         pool: &crate::database::DbPool,
         create_transaction: CreateTransaction,
     ) -> anyhow::Result<Transaction> {
-        let transaction = sqlx::query_as::<_, Transaction>(
+        let result = sqlx::query(
             r#"
-            INSERT INTO transactions (account_book_id, category_id, amount, type, description, transaction_date, tags)
+            INSERT INTO transactions (account_book_id, category_id, amount, `type`, description, transaction_date, tags)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             "#,
         )
@@ -65,8 +67,15 @@ impl Transaction {
         .bind(&create_transaction.description)
         .bind(create_transaction.transaction_date)
         .bind(&create_transaction.tags)
-        .fetch_one(pool)
+        .execute(pool)
         .await?;
+
+        let transaction_id = result.last_insert_id() as i64;
+
+        let transaction = sqlx::query_as::<_, Transaction>("SELECT * FROM transactions WHERE id = ?")
+            .bind(transaction_id)
+            .fetch_one(pool)
+            .await?;
 
         Ok(transaction)
     }
@@ -178,8 +187,8 @@ impl Transaction {
         let row: Option<(Option<Decimal>, Option<Decimal>)> = sqlx::query_as(
             r#"
             SELECT 
-                SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income,
-                SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as total_expense
+                SUM(CASE WHEN `type` = 'income' THEN amount ELSE 0 END) as total_income,
+                SUM(CASE WHEN `type` = 'expense' THEN amount ELSE 0 END) as total_expense
             FROM transactions 
             WHERE account_book_id = ? AND transaction_date BETWEEN ? AND ?
             "#,

@@ -178,7 +178,7 @@ pub async fn detail(
             .unwrap_or(0);
 
             let income_result: Option<rust_decimal::Decimal> = sqlx::query_scalar(
-                "SELECT SUM(amount) FROM transactions WHERE account_book_id = ? AND type = 'income'"
+                "SELECT SUM(amount) FROM transactions WHERE account_book_id = ? AND `type` = 'income'"
             )
             .bind(id)
             .fetch_optional(&app_state.db_pool)
@@ -186,7 +186,7 @@ pub async fn detail(
             .unwrap_or(None);
 
             let expense_result: Option<rust_decimal::Decimal> = sqlx::query_scalar(
-                "SELECT SUM(amount) FROM transactions WHERE account_book_id = ? AND type = 'expense'"
+                "SELECT SUM(amount) FROM transactions WHERE account_book_id = ? AND `type` = 'expense'"
             )
             .bind(id)
             .fetch_optional(&app_state.db_pool)

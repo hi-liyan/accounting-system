@@ -35,7 +35,7 @@ impl Category {
         
         let result = sqlx::query(
             r#"
-            INSERT INTO categories (account_book_id, name, type, icon, color, sort_order)
+            INSERT INTO categories (account_book_id, name, `type`, icon, color, sort_order)
             VALUES (?, ?, ?, ?, ?, ?)
             "#,
         )
@@ -75,7 +75,7 @@ impl Category {
         category_type: &str,
     ) -> anyhow::Result<Vec<Category>> {
         let categories = sqlx::query_as::<_, Category>(
-            "SELECT * FROM categories WHERE account_book_id = ? AND type = ? AND is_active = TRUE ORDER BY sort_order, name"
+            "SELECT * FROM categories WHERE account_book_id = ? AND `type` = ? AND is_active = TRUE ORDER BY sort_order, name"
         )
         .bind(account_book_id)
         .bind(category_type)
