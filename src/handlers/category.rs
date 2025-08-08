@@ -100,6 +100,14 @@ pub struct CategoryForm {
     pub color: Option<String>,
 }
 
+#[derive(Deserialize, Validate)]
+pub struct UpdateCategoryForm {
+    #[validate(length(min = 1, max = 100, message = "分类名称长度必须在1-100个字符之间"))]
+    pub name: String,
+    pub icon: Option<String>,
+    pub color: Option<String>,
+}
+
 // 分类列表页面
 pub async fn list(
     user: CurrentUser,
@@ -261,7 +269,7 @@ pub async fn update(
     user: CurrentUser,
     Path((account_book_id, category_id)): Path<(i64, i64)>,
     State(app_state): State<AppState>,
-    Form(form): Form<CategoryForm>,
+    Form(form): Form<UpdateCategoryForm>,
 ) -> Redirect {
     // 验证账本权限
     match AccountBook::find_by_id(&app_state.db_pool, account_book_id, user.id).await {

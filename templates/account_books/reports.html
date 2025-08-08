@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.name }} - 统计报表{% endblock %}
+
+{% block nav %}
+<ul class="navbar-nav ms-auto">
+    <li class="nav-item">
+        <a class="nav-link" href="/dashboard">仪表板</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/account-books">我的账本</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/auth/logout">退出登录</a>
+    </li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<!-- 错误消息显示 -->
+{% if !error.is_empty() %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle"></i>
+    {{ error }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/account-books">我的账本</a></li>
+                <li class="breadcrumb-item"><a href="/account-books/{{ book.id }}">{{ book.name }}</a></li>
+                <li class="breadcrumb-item active">统计报表</li>
+            </ol>
+        </nav>
+        <h2>
+            <i class="bi bi-graph-up text-primary"></i>
+            统计报表 - {{ book.name }}
+        </h2>
+    </div>
+    <div class="btn-group" role="group">
+        <a href="/account-books/{{ book.id }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+            返回账本
+        </a>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-info dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="bi bi-calendar-range"></i>
+                时间范围
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="?months=3">最近3个月</a></li>
+                <li><a class="dropdown-item" href="?months=6">最近6个月</a></li>
+                <li><a class="dropdown-item" href="?months=12">最近1年</a></li>
+                <li><a class="dropdown-item" href="?months=24">最近2年</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- 总览统计卡片 -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center border-success">
+            <div class="card-body">
+                <i class="bi bi-arrow-up-circle-fill text-success" style="font-size: 2.5rem;"></i>
+                <h4 class="mt-2 text-success">¥{{ total_income }}</h4>
+                <p class="text-muted mb-0">总收入</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-danger">
+            <div class="card-body">
+                <i class="bi bi-arrow-down-circle-fill text-danger" style="font-size: 2.5rem;"></i>
+                <h4 class="mt-2 text-danger">¥{{ total_expense }}</h4>
+                <p class="text-muted mb-0">总支出</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-info">
+            <div class="card-body">
+                {% if total_income >= total_expense %}
+                    <i class="bi bi-plus-circle-fill text-success" style="font-size: 2.5rem;"></i>
+                    <h4 class="mt-2 text-success">¥{{ total_income - total_expense }}</h4>
+                    <p class="text-muted mb-0">净收入</p>
+                {% else %}
+                    <i class="bi bi-dash-circle-fill text-danger" style="font-size: 2.5rem;"></i>
+                    <h4 class="mt-2 text-danger">¥{{ total_expense - total_income }}</h4>
+                    <p class="text-muted mb-0">净支出</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-warning">
+            <div class="card-body">
+                <i class="bi bi-calendar-day text-warning" style="font-size: 2.5rem;"></i>
+                <h4 class="mt-2 text-warning">¥{{ average_daily_expense }}</h4>
+                <p class="text-muted mb-0">日均支出</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 月度收支趋势图表 -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-graph-up"></i>
+                    月度收支趋势
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="monthlyTrendChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 分类统计图表 -->
+<div class="row mb-4">
+    <!-- 支出分类饼图 -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-pie-chart"></i>
+                    支出分类占比
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if !expense_categories.is_empty() %}
+                    <canvas id="expenseCategoryChart" width="400" height="300"></canvas>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-info-circle text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-3">暂无支出数据</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- 收入分类饼图 -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-pie-chart-fill"></i>
+                    收入分类占比
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if !income_categories.is_empty() %}
+                    <canvas id="incomeCategoryChart" width="400" height="300"></canvas>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-info-circle text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-3">暂无收入数据</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 分类排行榜 -->
+<div class="row mb-4">
+    <!-- 支出分类排行 -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-list-ol"></i>
+                    支出分类排行
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if !expense_categories.is_empty() %}
+                    <div class="list-group list-group-flush">
+                        {% for category in expense_categories %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <span class="badge rounded-pill me-3" style="background-color: {{ category.color }}; width: 12px; height: 12px;"></span>
+                                <div>
+                                    <h6 class="mb-1">{{ category.name }}</h6>
+                                    <small class="text-muted">{{ category.transaction_count }} 笔交易</small>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-bold text-danger">¥{{ category.amount }}</span>
+                                <br>
+                                <small class="text-muted">{{ category.percentage }}%</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="bi bi-info-circle text-muted"></i>
+                        <p class="text-muted mb-0">暂无支出数据</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- 收入分类排行 -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-list-ol"></i>
+                    收入分类排行
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if !income_categories.is_empty() %}
+                    <div class="list-group list-group-flush">
+                        {% for category in income_categories %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <span class="badge rounded-pill me-3" style="background-color: {{ category.color }}; width: 12px; height: 12px;"></span>
+                                <div>
+                                    <h6 class="mb-1">{{ category.name }}</h6>
+                                    <small class="text-muted">{{ category.transaction_count }} 笔交易</small>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-bold text-success">¥{{ category.amount }}</span>
+                                <br>
+                                <small class="text-muted">{{ category.percentage }}%</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="bi bi-info-circle text-muted"></i>
+                        <p class="text-muted mb-0">暂无收入数据</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 最近30天支出趋势 -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-bar-chart-line"></i>
+                    最近30天支出趋势
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if !daily_expenses.is_empty() %}
+                    <canvas id="dailyExpenseChart" width="400" height="200"></canvas>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-info-circle text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-3">暂无支出数据</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js 脚本 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// 月度趋势图表
+{% if !monthly_trends.is_empty() %}
+const monthlyCtx = document.getElementById('monthlyTrendChart').getContext('2d');
+new Chart(monthlyCtx, {
+    type: 'line',
+    data: {
+        labels: [{% for trend in monthly_trends %}'{{ trend.month }}'{% if !loop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: '收入',
+            data: [{% for trend in monthly_trends %}{{ trend.income }}{% if !loop.last %},{% endif %}{% endfor %}],
+            borderColor: 'rgba(40, 167, 69, 1)',
+            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+            tension: 0.1
+        }, {
+            label: '支出',
+            data: [{% for trend in monthly_trends %}{{ trend.expense }}{% if !loop.last %},{% endif %}{% endfor %}],
+            borderColor: 'rgba(220, 53, 69, 1)',
+            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top',
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '¥' + value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+{% endif %}
+
+// 支出分类饼图
+{% if !expense_categories.is_empty() %}
+const expenseCtx = document.getElementById('expenseCategoryChart').getContext('2d');
+new Chart(expenseCtx, {
+    type: 'pie',
+    data: {
+        labels: [{% for category in expense_categories %}'{{ category.name }}'{% if !loop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            data: [{% for category in expense_categories %}{{ category.amount }}{% if !loop.last %},{% endif %}{% endfor %}],
+            backgroundColor: [{% for category in expense_categories %}'{{ category.color }}'{% if !loop.last %},{% endif %}{% endfor %}]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom',
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const label = context.label + ': ¥' + context.parsed.toLocaleString();
+                        const percentage = (context.parsed / context.dataset.data.reduce((a, b) => a + b, 0) * 100).toFixed(1);
+                        return label + ' (' + percentage + '%)';
+                    }
+                }
+            }
+        }
+    }
+});
+{% endif %}
+
+// 收入分类饼图
+{% if !income_categories.is_empty() %}
+const incomeCtx = document.getElementById('incomeCategoryChart').getContext('2d');
+new Chart(incomeCtx, {
+    type: 'pie',
+    data: {
+        labels: [{% for category in income_categories %}'{{ category.name }}'{% if !loop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            data: [{% for category in income_categories %}{{ category.amount }}{% if !loop.last %},{% endif %}{% endfor %}],
+            backgroundColor: [{% for category in income_categories %}'{{ category.color }}'{% if !loop.last %},{% endif %}{% endfor %}]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom',
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const label = context.label + ': ¥' + context.parsed.toLocaleString();
+                        const percentage = (context.parsed / context.dataset.data.reduce((a, b) => a + b, 0) * 100).toFixed(1);
+                        return label + ' (' + percentage + '%)';
+                    }
+                }
+            }
+        }
+    }
+});
+{% endif %}
+
+// 每日支出趋势图
+{% if !daily_expenses.is_empty() %}
+const dailyCtx = document.getElementById('dailyExpenseChart').getContext('2d');
+new Chart(dailyCtx, {
+    type: 'bar',
+    data: {
+        labels: [{% for expense in daily_expenses %}'{{ expense.date }}'{% if !loop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: '支出',
+            data: [{% for expense in daily_expenses %}{{ expense.amount }}{% if !loop.last %},{% endif %}{% endfor %}],
+            backgroundColor: 'rgba(220, 53, 69, 0.8)',
+            borderColor: 'rgba(220, 53, 69, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '¥' + value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+{% endif %}
+</script>
+{% endblock %}
