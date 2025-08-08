@@ -2,125 +2,521 @@
 
 {% block title %}新建交易 - {{ account_book.name }}{% endblock %}
 
+{% block extra_head %}
+<style>
+    * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* 页面动画 */
+    .animate-fade-in,
+    .animate-slide-up,
+    .animate-scale-in {
+        opacity: 0;
+    }
+    
+    .animate-slide-up {
+        transform: translateY(30px);
+        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* 响应式优化 */
+    @media (max-width: 768px) {
+        .form-container {
+            max-width: 100%;
+            padding: 0 10px;
+        }
+        
+        .form-section {
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .form-section-title {
+            font-size: 16px;
+            margin-bottom: 18px;
+        }
+        
+        .transaction-type-selector {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        
+        .type-option {
+            padding: 20px 16px;
+        }
+        
+        .type-icon {
+            font-size: 2rem;
+        }
+        
+        .amount-input {
+            font-size: 16px !important;
+        }
+    }
+    
+    /* 加载状态动画 */
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .loading-spinner {
+        animation: spin 1s linear infinite;
+    }
+    
+    /* Apple风格卡片 */
+    .apple-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+    
+    .apple-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Apple风格按钮 */
+    .apple-button {
+        background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-weight: 600;
+        padding: 12px 20px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .apple-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .apple-button-secondary {
+        background: rgba(0, 122, 255, 0.1);
+        border: 1px solid rgba(0, 122, 255, 0.2);
+        border-radius: 12px;
+        color: #007AFF;
+        font-weight: 600;
+        padding: 10px 18px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .apple-button-secondary:hover {
+        background: rgba(0, 122, 255, 0.15);
+        transform: translateY(-1px);
+        color: #007AFF;
+        text-decoration: none;
+    }
+    
+    .apple-button-success {
+        background: linear-gradient(135deg, #34D399, #10B981);
+        box-shadow: 0 4px 15px rgba(52, 211, 153, 0.3);
+    }
+    
+    .apple-button-success:hover {
+        box-shadow: 0 6px 20px rgba(52, 211, 153, 0.4);
+    }
+    
+    /* 表单区域整体样式 */
+    .form-container {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    .form-section {
+        background: white;
+        border-radius: 20px;
+        padding: 28px;
+        margin-bottom: 20px;
+        border: 1px solid #f0f0f0;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.04);
+        transition: all 0.3s ease;
+    }
+    
+    .form-section:hover {
+        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+    }
+    
+    .form-section-title {
+        color: #262626;
+        font-weight: 700;
+        font-size: 18px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #f5f5f5;
+    }
+    
+    /* 表单样式 */
+    .apple-form-control {
+        border: 2px solid #e8e8e8;
+        border-radius: 14px;
+        padding: 16px 18px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        background: #fafafa;
+        width: 100%;
+        font-weight: 500;
+    }
+    
+    .apple-form-control:focus {
+        border-color: #007AFF;
+        box-shadow: 0 0 0 0.2rem rgba(0, 122, 255, 0.1);
+        outline: none;
+        background: white;
+        transform: translateY(-1px);
+    }
+    
+    .apple-form-control::placeholder {
+        color: #a0a0a0;
+        font-weight: 400;
+    }
+    
+    .apple-form-label {
+        font-weight: 600;
+        color: #262626;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        font-size: 15px;
+    }
+    
+    .apple-form-text {
+        color: #737373;
+        font-size: 13px;
+        margin-top: 8px;
+        display: flex;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    /* 金额输入样式优化 */
+    .amount-input-group {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    
+    .currency-prefix {
+        position: absolute;
+        left: 18px;
+        color: #007AFF;
+        font-weight: 700;
+        z-index: 10;
+        pointer-events: none;
+        font-size: 16px;
+    }
+    
+    .amount-input {
+        padding-left: 50px !important;
+        font-size: 18px !important;
+        font-weight: 600 !important;
+        text-align: right;
+        color: #262626;
+    }
+    
+    .amount-input:focus {
+        color: #007AFF;
+    }
+    
+    /* 交易类型选择器优化 */
+    .transaction-type-section {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+    
+    .transaction-type-selector {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 16px;
+    }
+    
+    .type-option {
+        padding: 24px 20px;
+        border: 2px solid #e0e0e0;
+        border-radius: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        background: white;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .type-option::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.1) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .type-option:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .type-option:hover::before {
+        opacity: 1;
+    }
+    
+    .type-option.income {
+        border-color: #34D399;
+        color: #059669;
+    }
+    
+    .type-option.income.selected {
+        background: linear-gradient(135deg, #10B981, #059669);
+        color: white;
+        border-color: #059669;
+        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+    }
+    
+    .type-option.expense {
+        border-color: #F87171;
+        color: #DC2626;
+    }
+    
+    .type-option.expense.selected {
+        background: linear-gradient(135deg, #EF4444, #DC2626);
+        color: white;
+        border-color: #DC2626;
+        box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+    }
+    
+    .type-icon {
+        font-size: 2.5rem;
+        margin-bottom: 12px;
+        display: block;
+    }
+    
+    .type-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+    
+    .type-desc {
+        font-size: 13px;
+        opacity: 0.8;
+    }
+    
+    /* 消息样式 */
+    .message-error {
+        background: linear-gradient(135deg, #F87171 0%, #EF4444 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        border: none;
+        margin-bottom: 24px;
+    }
+    
+    /* 面包屑导航 */
+    .apple-breadcrumb {
+        background: transparent;
+        padding: 0;
+        margin-bottom: 16px;
+    }
+    
+    .apple-breadcrumb-item {
+        color: #007AFF;
+        text-decoration: none;
+        font-size: 14px;
+    }
+    
+    .apple-breadcrumb-item:hover {
+        text-decoration: underline;
+    }
+    
+    .apple-breadcrumb-item.active {
+        color: #525252;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<!-- 错误消息显示 -->
-{% if !error.is_empty() %}
-<div class="alert alert-danger alert-dismissible fade show" role="alert">
-    <i class="bi bi-exclamation-triangle"></i>
-    {{ error }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endif %}
-
-<!-- 页面标题 -->
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2>
-            <i class="bi bi-plus-circle text-success"></i>
-            新建交易
-        </h2>
-        <p class="text-muted mb-0">
-            <i class="bi bi-journal-text"></i>
-            账本：<strong>{{ account_book.name }}</strong>
-            <span class="badge bg-info ms-2">{{ account_book.currency }}</span>
-        </p>
+<div class="container-fluid px-4 py-6">
+    <!-- 错误消息显示 -->
+    {% if !error.is_empty() %}
+    <div class="message-error d-flex align-items-center gap-3 animate-fade-in" id="errorMessage">
+        <i class="bi bi-exclamation-triangle text-2xl"></i>
+        <span>{{ error }}</span>
+        <button type="button" class="btn-close btn-close-white ms-auto" onclick="document.getElementById('errorMessage').remove()"></button>
     </div>
-    <a href="/account-books/{{ account_book.id }}/transactions" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i>
-        返回列表
-    </a>
-</div>
+    {% endif %}
 
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-receipt"></i>
-                    交易信息
-                </h5>
-            </div>
-            <div class="card-body">
-                <form method="post" id="transactionForm">
-                    <!-- 交易类型 -->
-                    <div class="mb-4">
-                        <label class="form-label">交易类型</label>
-                        <div class="btn-group w-100" role="group">
-                            <input type="radio" class="btn-check" name="transaction_type" id="income" value="income" autocomplete="off">
-                            <label class="btn btn-outline-success" for="income">
-                                <i class="bi bi-arrow-up-circle"></i>
-                                收入
-                            </label>
+    <!-- 面包屑导航 -->
+    <nav class="apple-breadcrumb animate-fade-in">
+        <a href="/account-books" class="apple-breadcrumb-item">我的账本</a>
+        <span class="mx-2 text-apple-gray-400">/</span>
+        <a href="/account-books/{{ account_book.id }}" class="apple-breadcrumb-item">{{ account_book.name }}</a>
+        <span class="mx-2 text-apple-gray-400">/</span>
+        <a href="/account-books/{{ account_book.id }}/transactions" class="apple-breadcrumb-item">交易记录</a>
+        <span class="mx-2 text-apple-gray-400">/</span>
+        <span class="apple-breadcrumb-item active">新建交易</span>
+    </nav>
 
-                            <input type="radio" class="btn-check" name="transaction_type" id="expense" value="expense" autocomplete="off" checked>
-                            <label class="btn btn-outline-danger" for="expense">
-                                <i class="bi bi-arrow-down-circle"></i>
-                                支出
-                            </label>
+    <!-- 页面标题区域 -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-6 animate-fade-in">
+        <div>
+            <h1 class="h2 text-apple-gray-800 mb-2 font-weight-light">
+                <i class="bi bi-plus-circle text-success me-3"></i>
+                新建交易
+            </h1>
+            <p class="text-apple-gray-600 mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-journal-text"></i>
+                账本：<strong class="text-apple-gray-800">{{ account_book.name }}</strong>
+                <span class="badge bg-light text-primary border">{{ account_book.currency }}</span>
+            </p>
+        </div>
+        <div class="mt-3 mt-md-0">
+            <a href="/account-books/{{ account_book.id }}/transactions" class="apple-button-secondary">
+                <i class="bi bi-arrow-left"></i>
+                返回列表
+            </a>
+        </div>
+    </div>
+
+    <div class="form-container animate-slide-up">
+        <!-- 表单内容 -->
+        <form method="post" id="transactionForm">
+            <!-- 交易类型选择 -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="bi bi-arrow-left-right text-primary"></i>
+                    交易类型
+                </div>
+                <div class="transaction-type-selector">
+                    <div class="type-option income" onclick="selectTransactionType('income')">
+                        <div class="type-icon">
+                            <i class="bi bi-plus-circle"></i>
                         </div>
+                        <div class="type-title">收入</div>
+                        <div class="type-desc">赚取的资金</div>
                     </div>
+                    <div class="type-option expense selected" onclick="selectTransactionType('expense')">
+                        <div class="type-icon">
+                            <i class="bi bi-dash-circle"></i>
+                        </div>
+                        <div class="type-title">支出</div>
+                        <div class="type-desc">花费的资金</div>
+                    </div>
+                </div>
+                <input type="hidden" name="transaction_type" id="transaction_type" value="expense">
+            </div>
 
-                    <!-- 分类选择 -->
-                    <div class="mb-3">
-                        <label for="category_id" class="form-label">分类</label>
-                        <select class="form-select" id="category_id" name="category_id" required>
+            <!-- 基本信息 -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="bi bi-info-circle text-primary"></i>
+                    基本信息
+                </div>
+                
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label for="category_id" class="apple-form-label">
+                            <i class="bi bi-tags text-muted me-1"></i>
+                            分类
+                        </label>
+                        <select class="apple-form-control" id="category_id" name="category_id" required>
                             <option value="">请选择分类</option>
                         </select>
-                        <div class="form-text">
-                            <i class="bi bi-info-circle"></i>
+                        <div class="apple-form-text">
+                            <i class="bi bi-info-circle me-1"></i>
                             分类选项会根据交易类型自动过滤
                         </div>
                     </div>
-
-                    <!-- 金额 -->
-                    <div class="mb-3">
-                        <label for="amount" class="form-label">金额</label>
-                        <div class="input-group">
-                            <span class="input-group-text">{{ account_book.currency }}</span>
-                            <input type="number" class="form-control" id="amount" name="amount" 
+                    
+                    <div class="col-md-8">
+                        <label for="amount" class="apple-form-label">
+                            <i class="bi bi-cash text-muted me-1"></i>
+                            金额
+                        </label>
+                        <div class="amount-input-group">
+                            <div class="currency-prefix">{{ account_book.currency }}</div>
+                            <input type="number" class="apple-form-control amount-input" id="amount" name="amount" 
                                    step="0.01" min="0.01" placeholder="0.00" required>
                         </div>
                     </div>
-
-                    <!-- 日期 -->
-                    <div class="mb-3">
-                        <label for="transaction_date" class="form-label">交易日期</label>
-                        <input type="date" class="form-control" id="transaction_date" name="transaction_date" required>
+                    
+                    <div class="col-md-4">
+                        <label for="transaction_date" class="apple-form-label">
+                            <i class="bi bi-calendar3 text-muted me-1"></i>
+                            日期
+                        </label>
+                        <input type="date" class="apple-form-control" id="transaction_date" name="transaction_date" required>
                     </div>
-
-                    <!-- 描述 -->
-                    <div class="mb-3">
-                        <label for="description" class="form-label">描述（可选）</label>
-                        <textarea class="form-control" id="description" name="description" 
-                                  rows="3" placeholder="请输入交易描述..."></textarea>
-                    </div>
-
-                    <!-- 标签 -->
-                    <div class="mb-4">
-                        <label for="tags" class="form-label">标签（可选）</label>
-                        <input type="text" class="form-control" id="tags" name="tags" 
-                               placeholder="用英文逗号分隔多个标签，例如：餐饮,聚餐">
-                        <div class="form-text">
-                            <i class="bi bi-tag"></i>
-                            多个标签请用英文逗号分隔
-                        </div>
-                    </div>
-
-                    <!-- 提交按钮 -->
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="/account-books/{{ account_book.id }}/transactions" class="btn btn-secondary">
-                            <i class="bi bi-x-circle"></i>
-                            取消
-                        </a>
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-check-circle"></i>
-                            保存交易
-                        </button>
-                    </div>
-                </form>
+                </div>
             </div>
-        </div>
+
+            <!-- 详细信息 -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="bi bi-card-text text-primary"></i>
+                    详细信息 <span class="text-muted fw-normal fs-6">（可选）</span>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="description" class="apple-form-label">
+                        <i class="bi bi-chat-left-text text-muted me-1"></i>
+                        描述备注
+                    </label>
+                    <textarea class="apple-form-control" id="description" name="description" 
+                              rows="3" placeholder="记录一些备注信息，例如：在哪里消费、和谁一起等..."></textarea>
+                </div>
+
+                <div>
+                    <label for="tags" class="apple-form-label">
+                        <i class="bi bi-hash text-muted me-1"></i>
+                        标签
+                    </label>
+                    <input type="text" class="apple-form-control" id="tags" name="tags" 
+                           placeholder="例如：聚餐,朋友,生日 (用逗号分隔)">
+                    <div class="apple-form-text">
+                        <i class="bi bi-lightbulb me-1"></i>
+                        添加标签可以帮助您更好地分类和搜索交易记录
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="form-section">
+                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+                    <a href="/account-books/{{ account_book.id }}/transactions" class="apple-button-secondary">
+                        <i class="bi bi-arrow-left"></i>
+                        取消返回
+                    </a>
+                    <button type="submit" class="apple-button apple-button-success">
+                        <i class="bi bi-check-circle"></i>
+                        保存交易记录
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -138,9 +534,23 @@ const categories = [
     {% endfor %}
 ];
 
+// 选择交易类型
+function selectTransactionType(type) {
+    document.getElementById('transaction_type').value = type;
+    
+    // 更新UI样式
+    document.querySelectorAll('.type-option').forEach(option => {
+        option.classList.remove('selected');
+    });
+    document.querySelector(`.type-option.${type}`).classList.add('selected');
+    
+    // 更新分类选项
+    updateCategoryOptions();
+}
+
 // 更新分类选项
 function updateCategoryOptions() {
-    const transactionType = document.querySelector('input[name="transaction_type"]:checked').value;
+    const transactionType = document.getElementById('transaction_type').value;
     const categorySelect = document.getElementById('category_id');
     
     // 清空现有选项
@@ -178,11 +588,13 @@ function showCategoryWarning(type) {
     
     const warning = document.createElement('div');
     warning.id = 'categoryWarning';
-    warning.className = 'alert alert-warning mt-2';
+    warning.className = 'message-error mt-3 d-flex align-items-center gap-3';
     warning.innerHTML = `
         <i class="bi bi-exclamation-triangle"></i>
-        该账本暂无可用的${typeName}分类，请先 
-        <a href="/account-books/{{ account_book.id }}/categories/new" class="alert-link">创建${typeName}分类</a>
+        <div>
+            <div>该账本暂无可用的${typeName}分类</div>
+            <small>请先 <a href="/account-books/{{ account_book.id }}/categories/new" class="text-white text-decoration-underline">创建${typeName}分类</a></small>
+        </div>
     `;
     
     document.getElementById('category_id').parentNode.appendChild(warning);
@@ -197,6 +609,22 @@ function hideCategoryWarning() {
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', function() {
+    // 页面动画 - 分步显示
+    setTimeout(() => {
+        document.querySelectorAll('.animate-fade-in').forEach((el, index) => {
+            setTimeout(() => {
+                el.style.opacity = '1';
+            }, index * 100);
+        });
+        
+        document.querySelectorAll('.animate-slide-up').forEach((el, index) => {
+            setTimeout(() => {
+                el.style.opacity = '1';
+                el.style.transform = 'translateY(0)';
+            }, (index + 2) * 150);
+        });
+    }, 100);
+    
     // 设置默认日期为今天
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('transaction_date').value = today;
@@ -204,21 +632,78 @@ document.addEventListener('DOMContentLoaded', function() {
     // 初始化分类选项
     updateCategoryOptions();
     
-    // 监听交易类型变化
-    document.querySelectorAll('input[name="transaction_type"]').forEach(radio => {
-        radio.addEventListener('change', updateCategoryOptions);
+    // 金额输入框焦点优化
+    const amountInput = document.getElementById('amount');
+    amountInput.addEventListener('focus', function() {
+        this.parentElement.style.transform = 'scale(1.02)';
+        this.parentElement.style.transition = 'transform 0.2s ease';
     });
     
-    // 表单验证
+    amountInput.addEventListener('blur', function() {
+        this.parentElement.style.transform = 'scale(1)';
+    });
+    
+    // 表单验证增强
     document.getElementById('transactionForm').addEventListener('submit', function(e) {
         const categorySelect = document.getElementById('category_id');
+        const amountInput = document.getElementById('amount');
+        
+        // 验证分类
         if (!categorySelect.value || categorySelect.disabled) {
             e.preventDefault();
-            const transactionType = document.querySelector('input[name="transaction_type"]:checked').value;
-            const typeName = transactionType === 'income' ? '收入' : '支出';
-            alert(`请先创建${typeName}分类，然后再创建交易记录。`);
+            showValidationError('分类', '请选择有效的分类');
+            return;
         }
+        
+        // 验证金额
+        if (!amountInput.value || parseFloat(amountInput.value) <= 0) {
+            e.preventDefault();
+            showValidationError('金额', '请输入有效的金额');
+            amountInput.focus();
+            return;
+        }
+        
+        // 提交时显示加载状态
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> 正在保存...';
+        
+        // 如果有验证错误，恢复按钮状态
+        setTimeout(() => {
+            if (submitBtn.disabled) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        }, 5000);
     });
 });
+
+// 显示验证错误
+function showValidationError(field, message) {
+    // 创建Apple风格的错误提示
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'message-error d-flex align-items-center gap-3';
+    alertDiv.style.marginBottom = '20px';
+    alertDiv.innerHTML = `
+        <i class="bi bi-exclamation-triangle"></i>
+        <span><strong>${field}错误：</strong>${message}</span>
+        <button type="button" class="btn-close btn-close-white ms-auto" onclick="this.parentElement.remove()"></button>
+    `;
+    
+    // 插入到表单容器顶部
+    const container = document.querySelector('.form-container');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // 滚动到错误提示
+    alertDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // 5秒后自动消失
+    setTimeout(() => {
+        if (alertDiv.parentElement) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
 </script>
 {% endblock %}
