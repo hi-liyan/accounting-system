@@ -128,6 +128,24 @@ impl Category {
         Ok(())
     }
 
+    pub async fn update_sort_orders(
+        pool: &crate::database::DbPool,
+        updates: Vec<(i64, i32)>, // (category_id, new_sort_order)
+    ) -> anyhow::Result<()> {
+        let mut transaction = pool.begin().await?;
+        
+        for (category_id, sort_order) in updates {
+            sqlx::query("UPDATE categories SET sort_order = ? WHERE id = ?")
+                .bind(sort_order)
+                .bind(category_id)
+                .execute(&mut *transaction)
+                .await?;
+        }
+        
+        transaction.commit().await?;
+        Ok(())
+    }
+
     async fn get_next_sort_order(
         pool: &crate::database::DbPool,
         account_book_id: i64,

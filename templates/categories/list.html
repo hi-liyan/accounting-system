@@ -362,6 +362,67 @@
         padding: 16px 24px 24px;
     }
     
+    /* 拖拽排序样式 */
+    .sortable {
+        min-height: 20px;
+    }
+    
+    .sortable-item {
+        transition: all 0.3s ease;
+        cursor: default; /* 普通光标 */
+    }
+    
+    .sortable-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    .sortable-item.sortable-chosen {
+        transform: scale(1.05) rotate(3deg);
+        opacity: 0.8;
+        z-index: 999;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+    
+    .sortable-item.sortable-ghost {
+        opacity: 0.3;
+        background: rgba(0, 122, 255, 0.1);
+        border: 2px dashed rgba(0, 122, 255, 0.5);
+        transform: none;
+        box-shadow: none;
+    }
+    
+    .drag-handle {
+        cursor: grab;
+        padding: 8px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        color: #a0a0a0;
+    }
+    
+    .drag-handle:hover {
+        background: rgba(0, 122, 255, 0.1);
+        color: #007AFF;
+    }
+    
+    .drag-handle:active {
+        cursor: grabbing;
+    }
+    
+    /* 排序提示 */
+    .sort-hint {
+        background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+        color: #1976D2;
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 0.9rem;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgba(25, 118, 210, 0.2);
+    }
+    
     /* 响应式优化 */
     @media (max-width: 768px) {
         .category-section {
@@ -468,9 +529,16 @@
                     </a>
                 </div>
                 {% else %}
-                <div>
+                <div class="sort-hint">
+                    <i class="bi bi-cursor-fill"></i>
+                    <span>拖拽分类项目可以重新排序</span>
+                </div>
+                <div class="sortable" id="income-categories" data-type="income">
                     {% for category in income_categories %}
-                    <div class="category-item d-flex align-items-center">
+                    <div class="category-item sortable-item d-flex align-items-center" data-id="{{ category.id }}" data-sort-order="{{ category.sort_order }}">
+                        <div class="drag-handle">
+                            <i class="bi bi-grip-vertical"></i>
+                        </div>
                         <div class="category-icon" style="background-color: {{ category.color }};">
                             {% if !category.icon.is_empty() %}
                                 <i class="bi bi-{{ category.icon }}"></i>
@@ -529,9 +597,16 @@
                     </a>
                 </div>
                 {% else %}
-                <div>
+                <div class="sort-hint">
+                    <i class="bi bi-cursor-fill"></i>
+                    <span>拖拽分类项目可以重新排序</span>
+                </div>
+                <div class="sortable" id="expense-categories" data-type="expense">
                     {% for category in expense_categories %}
-                    <div class="category-item d-flex align-items-center">
+                    <div class="category-item sortable-item d-flex align-items-center" data-id="{{ category.id }}" data-sort-order="{{ category.sort_order }}">
+                        <div class="drag-handle">
+                            <i class="bi bi-grip-vertical"></i>
+                        </div>
                         <div class="category-icon" style="background-color: {{ category.color }};">
                             {% if !category.icon.is_empty() %}
                                 <i class="bi bi-{{ category.icon }}"></i>
@@ -579,6 +654,7 @@
                     <li>收入分类用于记录各种收入来源，如工资、奖金、投资收益等</li>
                     <li>支出分类用于记录各种支出类型，如餐饮、交通、购物等</li>
                     <li>可以为每个分类设置图标和颜色，便于快速识别</li>
+                    <li>拖拽分类项目左侧的拖拽手柄可以重新排序</li>
                     <li>删除分类前请确保该分类下没有交易记录</li>
                 </ul>
             </div>
@@ -624,6 +700,9 @@
     </div>
 </div>
 
+<!-- SortableJS CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
 <script>
 function confirmDelete(categoryId, categoryName, categoryType) {
     document.getElementById('deleteCategoryName').textContent = categoryName;
@@ -657,6 +736,136 @@ document.addEventListener('DOMContentLoaded', function() {
             }, (index + 4) * 100);
         });
     }, 100);
+    
+    // 初始化拖拽排序功能
+    initializeDragAndDrop();
 });
+
+// 初始化拖拽排序功能
+function initializeDragAndDrop() {
+    const sortableContainers = document.querySelectorAll('.sortable');
+    
+    sortableContainers.forEach(container => {
+        if (container.children.length === 0) return; // 跳过空容器
+        
+        new Sortable(container, {
+            group: container.dataset.type, // 防止不同类型之间拖拽
+            handle: '.drag-handle',
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            dragClass: 'sortable-drag',
+            
+            onEnd: function(evt) {
+                // 获取所有当前容器中的项目
+                const items = Array.from(evt.to.children);
+                const updates = [];
+                
+                // 构建更新数据
+                items.forEach((item, index) => {
+                    const categoryId = parseInt(item.dataset.id);
+                    const newSortOrder = index + 1;
+                    
+                    if (item.dataset.sortOrder != newSortOrder) {
+                        updates.push({
+                            category_id: categoryId,
+                            sort_order: newSortOrder
+                        });
+                        // 更新数据属性
+                        item.dataset.sortOrder = newSortOrder;
+                    }
+                });
+                
+                // 如果有更新，发送到服务器
+                if (updates.length > 0) {
+                    updateSortOrders(updates);
+                }
+            }
+        });
+    });
+}
+
+// 更新排序顺序
+async function updateSortOrders(updates) {
+    try {
+        const response = await fetch(`/account-books/{{ account_book.id }}/categories/sort`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ updates: updates })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to update sort orders');
+        }
+        
+        const result = await response.json();
+        if (result.success) {
+            showSuccessMessage('分类排序已更新');
+        } else {
+            throw new Error('Server returned error');
+        }
+    } catch (error) {
+        console.error('Error updating sort orders:', error);
+        showErrorMessage('更新排序失败，请刷新页面重试');
+        // 刷新页面以恢复原始顺序
+        setTimeout(() => location.reload(), 2000);
+    }
+}
+
+// 显示成功消息
+function showSuccessMessage(message) {
+    const existingMessage = document.getElementById('sortSuccessMessage');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.id = 'sortSuccessMessage';
+    alertDiv.className = 'message-success d-flex align-items-center gap-3';
+    alertDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1050; max-width: 300px;';
+    alertDiv.innerHTML = `
+        <i class="bi bi-check-circle"></i>
+        <span>${message}</span>
+        <button type="button" class="btn-close btn-close-white ms-auto" onclick="this.parentElement.remove()"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // 3秒后自动消失
+    setTimeout(() => {
+        if (alertDiv.parentElement) {
+            alertDiv.remove();
+        }
+    }, 3000);
+}
+
+// 显示错误消息
+function showErrorMessage(message) {
+    const existingMessage = document.getElementById('sortErrorMessage');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.id = 'sortErrorMessage';
+    alertDiv.className = 'message-error d-flex align-items-center gap-3';
+    alertDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1050; max-width: 300px;';
+    alertDiv.innerHTML = `
+        <i class="bi bi-exclamation-triangle"></i>
+        <span>${message}</span>
+        <button type="button" class="btn-close btn-close-white ms-auto" onclick="this.parentElement.remove()"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // 5秒后自动消失
+    setTimeout(() => {
+        if (alertDiv.parentElement) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
 </script>
 {% endblock %}

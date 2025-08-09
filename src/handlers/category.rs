@@ -110,6 +110,17 @@ pub struct UpdateCategoryForm {
     pub color: Option<String>,
 }
 
+#[derive(Deserialize)]
+pub struct UpdateSortOrdersRequest {
+    pub updates: Vec<SortOrderUpdate>,
+}
+
+#[derive(Deserialize)]
+pub struct SortOrderUpdate {
+    pub category_id: i64,
+    pub sort_order: i32,
+}
+
 // 分类列表页面
 pub async fn list(
     user: CurrentUser,
@@ -374,6 +385,72 @@ pub async fn delete(
             let error_msg = e.to_string();
             Redirect::to(&format!("/account-books/{}/categories?error={}", 
                 account_book_id, urlencoding::encode(&error_msg)))
+        }
+    }
+}
+
+// 更新分类排序顺序
+pub async fn update_sort_orders(
+    user: CurrentUser,
+    Path(account_book_id): Path<i64>,
+    State(app_state): State<AppState>,
+    axum::Json(request): axum::Json<UpdateSortOrdersRequest>,
+) -> axum::response::Result<axum::Json<serde_json::Value>, axum::response::Response> {
+    // 验证账本权限
+    match AccountBook::find_by_id(&app_state.db_pool, account_book_id, user.id).await {
+        Ok(Some(_)) => {},
+        Ok(None) => return Err(axum::response::Response::builder()
+            .status(404)
+            .header("Content-Type", "application/json")
+            .body("Account book not found or no access permission".into())
+            .unwrap()),
+        Err(_) => return Err(axum::response::Response::builder()
+            .status(500)
+            .header("Content-Type", "application/json")
+            .body("Failed to get account book information".into())
+            .unwrap()),
+    }
+
+    // 验证所有分类都属于该账本
+    for update in &request.updates {
+        match Category::find_by_id(&app_state.db_pool, update.category_id).await {
+            Ok(Some(category)) => {
+                if category.account_book_id != account_book_id {
+                    return Err(axum::response::Response::builder()
+                        .status(400)
+                        .header("Content-Type", "application/json")
+                        .body("Category does not belong to this account book".into())
+                        .unwrap());
+                }
+            },
+            Ok(None) => return Err(axum::response::Response::builder()
+                .status(404)
+                .header("Content-Type", "application/json")
+                .body("Category not found".into())
+                .unwrap()),
+            Err(_) => return Err(axum::response::Response::builder()
+                .status(500)
+                .header("Content-Type", "application/json")
+                .body("Failed to get category information".into())
+                .unwrap()),
+        }
+    }
+
+    // 执行批量更新
+    let updates: Vec<(i64, i32)> = request.updates
+        .into_iter()
+        .map(|u| (u.category_id, u.sort_order))
+        .collect();
+
+    match Category::update_sort_orders(&app_state.db_pool, updates).await {
+        Ok(_) => Ok(axum::Json(serde_json::json!({ "success": true }))),
+        Err(e) => {
+            eprintln!("Failed to update sort orders: {}", e);
+            Err(axum::response::Response::builder()
+                .status(500)
+                .header("Content-Type", "application/json")
+                .body("Failed to update sort orders".into())
+                .unwrap())
         }
     }
 }

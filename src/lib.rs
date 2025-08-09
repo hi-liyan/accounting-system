@@ -70,6 +70,7 @@ pub async fn create_app() -> anyhow::Result<Router> {
         .route("/account-books/:account_book_id/categories/:category_id/edit", get(category::show_edit))
         .route("/account-books/:account_book_id/categories/:category_id/update", post(category::update))
         .route("/account-books/:account_book_id/categories/:category_id/delete", post(category::delete))
+        .route("/account-books/:id/categories/sort", post(category::update_sort_orders))
         
         // 交易路由
         .route("/account-books/:id/transactions", get(transaction::list))
