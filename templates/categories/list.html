@@ -2,98 +2,501 @@
 
 {% block title %}管理分类 - {{ account_book.name }}{% endblock %}
 
+{% block extra_head %}
+<style>
+    * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* 页面动画 */
+    .animate-fade-in,
+    .animate-slide-up,
+    .animate-scale-in {
+        opacity: 0;
+    }
+    
+    .animate-slide-up {
+        transform: translateY(30px);
+        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Apple风格卡片 */
+    .apple-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+    
+    .apple-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Apple风格按钮 */
+    .apple-button {
+        background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-weight: 600;
+        padding: 12px 20px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .apple-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .apple-button-secondary {
+        background: rgba(0, 122, 255, 0.1);
+        border: 1px solid rgba(0, 122, 255, 0.2);
+        border-radius: 12px;
+        color: #007AFF;
+        font-weight: 600;
+        padding: 10px 18px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .apple-button-secondary:hover {
+        background: rgba(0, 122, 255, 0.15);
+        transform: translateY(-1px);
+        color: #007AFF;
+        text-decoration: none;
+    }
+    
+    .apple-button-success {
+        background: linear-gradient(135deg, #34D399, #10B981);
+        box-shadow: 0 4px 15px rgba(52, 211, 153, 0.3);
+    }
+    
+    .apple-button-success:hover {
+        box-shadow: 0 6px 20px rgba(52, 211, 153, 0.4);
+    }
+    
+    .apple-button-danger {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 8px;
+        color: #EF4444;
+        font-weight: 600;
+        padding: 8px 12px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 14px;
+    }
+    
+    .apple-button-danger:hover {
+        background: rgba(239, 68, 68, 0.15);
+        transform: translateY(-1px);
+        color: #EF4444;
+        text-decoration: none;
+    }
+    
+    .apple-button-edit {
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        border-radius: 8px;
+        color: #F59E0B;
+        font-weight: 600;
+        padding: 8px 12px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 14px;
+    }
+    
+    .apple-button-edit:hover {
+        background: rgba(245, 158, 11, 0.15);
+        transform: translateY(-1px);
+        color: #F59E0B;
+        text-decoration: none;
+    }
+    
+    /* 分类卡片样式 */
+    .category-section {
+        background: white;
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .category-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        border-radius: 20px 20px 0 0;
+    }
+    
+    .category-section.income::before {
+        background: linear-gradient(135deg, #34D399, #10B981);
+    }
+    
+    .category-section.expense::before {
+        background: linear-gradient(135deg, #F87171, #EF4444);
+    }
+    
+    .category-section:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: between;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid #f5f5f5;
+    }
+    
+    .section-title {
+        color: #262626;
+        font-weight: 700;
+        font-size: 20px;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .section-count {
+        background: rgba(0, 122, 255, 0.1);
+        color: #007AFF;
+        border-radius: 16px;
+        padding: 4px 12px;
+        font-size: 14px;
+        font-weight: 600;
+        margin-left: auto;
+    }
+    
+    /* 分类项目样式 */
+    .category-item {
+        background: #fafafa;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 16px;
+        border: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .category-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .category-item:hover {
+        background: white;
+        transform: translateX(4px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    
+    .category-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-right: 16px;
+        flex-shrink: 0;
+    }
+    
+    .category-info {
+        flex-grow: 1;
+    }
+    
+    .category-name {
+        font-weight: 700;
+        color: #262626;
+        margin-bottom: 4px;
+        font-size: 16px;
+    }
+    
+    .category-meta {
+        color: #737373;
+        font-size: 14px;
+    }
+    
+    .category-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    
+    /* 空状态样式 */
+    .empty-state {
+        text-align: center;
+        padding: 48px 20px;
+        color: #737373;
+    }
+    
+    .empty-state-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+        color: #1976D2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 2rem;
+    }
+    
+    /* 消息样式 */
+    .message-success {
+        background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        border: none;
+        margin-bottom: 24px;
+    }
+    
+    .message-error {
+        background: linear-gradient(135deg, #F87171 0%, #EF4444 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        border: none;
+        margin-bottom: 24px;
+    }
+    
+    /* 面包屑导航 */
+    .apple-breadcrumb {
+        background: transparent;
+        padding: 0;
+        margin-bottom: 16px;
+    }
+    
+    .apple-breadcrumb-item {
+        color: #007AFF;
+        text-decoration: none;
+        font-size: 14px;
+    }
+    
+    .apple-breadcrumb-item:hover {
+        text-decoration: underline;
+    }
+    
+    .apple-breadcrumb-item.active {
+        color: #525252;
+    }
+    
+    /* 操作提示卡片 */
+    .tips-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 20px;
+        padding: 24px;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .tips-title {
+        color: #495057;
+        font-weight: 700;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .tips-list {
+        margin: 0;
+        color: #6c757d;
+    }
+    
+    .tips-list li {
+        margin-bottom: 8px;
+        padding-left: 8px;
+    }
+    
+    /* 模态框样式 */
+    .apple-modal .modal-content {
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    }
+    
+    .apple-modal .modal-header {
+        border-bottom: 1px solid #f0f0f0;
+        padding: 24px 24px 16px;
+    }
+    
+    .apple-modal .modal-body {
+        padding: 16px 24px;
+    }
+    
+    .apple-modal .modal-footer {
+        border-top: 1px solid #f0f0f0;
+        padding: 16px 24px 24px;
+    }
+    
+    /* 响应式优化 */
+    @media (max-width: 768px) {
+        .category-section {
+            padding: 20px;
+        }
+        
+        .category-item {
+            padding: 16px;
+        }
+        
+        .category-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+            margin-right: 12px;
+        }
+        
+        .category-actions {
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .apple-button-edit,
+        .apple-button-danger {
+            padding: 6px 10px;
+            font-size: 13px;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<!-- 成功消息显示 -->
-{% if !success.is_empty() %}
-<div class="alert alert-success alert-dismissible fade show" role="alert">
-    <i class="bi bi-check-circle"></i>
-    {{ success }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endif %}
-
-<!-- 错误消息显示 -->
-{% if !error.is_empty() %}
-<div class="alert alert-danger alert-dismissible fade show" role="alert">
-    <i class="bi bi-exclamation-triangle"></i>
-    {{ error }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endif %}
-
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/account-books">我的账本</a></li>
-                <li class="breadcrumb-item"><a href="/account-books/{{ account_book.id }}">{{ account_book.name }}</a></li>
-                <li class="breadcrumb-item active">管理分类</li>
-            </ol>
-        </nav>
-        <h2>
-            <i class="bi bi-tags text-primary"></i>
-            管理分类 - {{ account_book.name }}
-        </h2>
+<div class="container-fluid px-4 py-6">
+    <!-- 成功消息显示 -->
+    {% if !success.is_empty() %}
+    <div class="message-success d-flex align-items-center gap-3 animate-fade-in" id="successMessage">
+        <i class="bi bi-check-circle text-2xl"></i>
+        <span>{{ success }}</span>
+        <button type="button" class="btn-close btn-close-white ms-auto" onclick="document.getElementById('successMessage').remove()"></button>
     </div>
-    <a href="/account-books/{{ account_book.id }}/categories/new" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i>
-        新建分类
-    </a>
-</div>
+    {% endif %}
 
-<div class="row">
-    <!-- 收入分类 -->
-    <div class="col-lg-6 mb-4">
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0">
-                    <i class="bi bi-arrow-up-circle"></i>
-                    收入分类 ({{ income_categories.len() }})
-                </h5>
-            </div>
-            <div class="card-body">
+    <!-- 错误消息显示 -->
+    {% if !error.is_empty() %}
+    <div class="message-error d-flex align-items-center gap-3 animate-fade-in" id="errorMessage">
+        <i class="bi bi-exclamation-triangle text-2xl"></i>
+        <span>{{ error }}</span>
+        <button type="button" class="btn-close btn-close-white ms-auto" onclick="document.getElementById('errorMessage').remove()"></button>
+    </div>
+    {% endif %}
+
+    <!-- 面包屑导航 -->
+    <nav class="apple-breadcrumb animate-fade-in">
+        <a href="/account-books" class="apple-breadcrumb-item">我的账本</a>
+        <span class="mx-2 text-apple-gray-400">/</span>
+        <a href="/account-books/{{ account_book.id }}" class="apple-breadcrumb-item">{{ account_book.name }}</a>
+        <span class="mx-2 text-apple-gray-400">/</span>
+        <span class="apple-breadcrumb-item active">管理分类</span>
+    </nav>
+
+    <!-- 页面标题区域 -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-6 animate-fade-in">
+        <div>
+            <h1 class="h2 text-apple-gray-800 mb-2 font-weight-light">
+                <i class="bi bi-tags text-primary me-3"></i>
+                管理分类
+            </h1>
+            <p class="text-apple-gray-600 mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-journal-text"></i>
+                账本：<strong class="text-apple-gray-800">{{ account_book.name }}</strong>
+                <span class="badge bg-light text-primary border">{{ account_book.currency }}</span>
+            </p>
+        </div>
+        <div class="mt-3 mt-md-0">
+            <a href="/account-books/{{ account_book.id }}/categories/new" class="apple-button apple-button-success">
+                <i class="bi bi-plus-circle"></i>
+                新建分类
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-6">
+        <!-- 收入分类 -->
+        <div class="col-lg-6">
+            <div class="category-section income animate-slide-up">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="bi bi-arrow-up-circle text-success"></i>
+                        收入分类
+                    </h3>
+                    <span class="section-count">{{ income_categories.len() }}</span>
+                </div>
+                
                 {% if income_categories.is_empty() %}
-                <div class="text-center py-4">
-                    <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
-                    <p class="text-muted mt-2">还没有收入分类</p>
-                    <a href="/account-books/{{ account_book.id }}/categories/new" class="btn btn-outline-success btn-sm">
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-plus-circle"></i>
+                    </div>
+                    <h4 class="text-apple-gray-800 mb-3">还没有收入分类</h4>
+                    <p class="text-apple-gray-600 mb-4">创建收入分类来记录您的收入来源</p>
+                    <a href="/account-books/{{ account_book.id }}/categories/new" class="apple-button-success">
                         <i class="bi bi-plus"></i>
                         创建收入分类
                     </a>
                 </div>
                 {% else %}
-                <div class="row">
+                <div>
                     {% for category in income_categories %}
-                    <div class="col-md-12 mb-3">
-                        <div class="d-flex align-items-center justify-content-between p-3 border rounded">
-                            <div class="d-flex align-items-center">
-                                <div class="category-icon me-3" style="background-color: {{ category.color }};">
-                                    {% if !category.icon.is_empty() %}
-                                        <i class="bi bi-{{ category.icon }}"></i>
-                                    {% else %}
-                                        <i class="bi bi-tag"></i>
-                                    {% endif %}
-                                </div>
-                                <div>
-                                    <h6 class="mb-1">{{ category.name }}</h6>
-                                    <small class="text-muted">
-                                        <i class="bi bi-clock"></i>
-                                        {{ category.created_at.format("%Y-%m-%d") }}
-                                    </small>
-                                </div>
+                    <div class="category-item d-flex align-items-center">
+                        <div class="category-icon" style="background-color: {{ category.color }};">
+                            {% if !category.icon.is_empty() %}
+                                <i class="bi bi-{{ category.icon }}"></i>
+                            {% else %}
+                                <i class="bi bi-tag"></i>
+                            {% endif %}
+                        </div>
+                        <div class="category-info">
+                            <div class="category-name">{{ category.name }}</div>
+                            <div class="category-meta">
+                                <i class="bi bi-calendar3 me-1"></i>
+                                创建于 {{ category.created_at.format("%Y-%m-%d") }}
                             </div>
-                            <div class="btn-group btn-group-sm" role="group">
-                                <a href="/account-books/{{ account_book.id }}/categories/{{ category.id }}/edit" 
-                                   class="btn btn-outline-primary btn-sm">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <button type="button" 
-                                        class="btn btn-outline-danger btn-sm" 
-                                        onclick="confirmDelete({{ category.id }}, '{{ category.name }}', 'income')">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
+                        </div>
+                        <div class="category-actions">
+                            <a href="/account-books/{{ account_book.id }}/categories/{{ category.id }}/edit" 
+                               class="apple-button-edit">
+                                <i class="bi bi-pencil"></i>
+                                编辑
+                            </a>
+                            <button type="button" 
+                                    class="apple-button-danger"
+                                    onclick="confirmDelete({{ category.id }}, '{{ category.name }}', 'income')">
+                                <i class="bi bi-trash"></i>
+                                删除
+                            </button>
                         </div>
                     </div>
                     {% endfor %}
@@ -101,59 +504,60 @@
                 {% endif %}
             </div>
         </div>
-    </div>
 
-    <!-- 支出分类 -->
-    <div class="col-lg-6 mb-4">
-        <div class="card">
-            <div class="card-header bg-danger text-white">
-                <h5 class="mb-0">
-                    <i class="bi bi-arrow-down-circle"></i>
-                    支出分类 ({{ expense_categories.len() }})
-                </h5>
-            </div>
-            <div class="card-body">
+        <!-- 支出分类 -->
+        <div class="col-lg-6">
+            <div class="category-section expense animate-slide-up" style="animation-delay: 0.1s">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="bi bi-arrow-down-circle text-danger"></i>
+                        支出分类
+                    </h3>
+                    <span class="section-count">{{ expense_categories.len() }}</span>
+                </div>
+                
                 {% if expense_categories.is_empty() %}
-                <div class="text-center py-4">
-                    <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
-                    <p class="text-muted mt-2">还没有支出分类</p>
-                    <a href="/account-books/{{ account_book.id }}/categories/new" class="btn btn-outline-danger btn-sm">
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-plus-circle"></i>
+                    </div>
+                    <h4 class="text-apple-gray-800 mb-3">还没有支出分类</h4>
+                    <p class="text-apple-gray-600 mb-4">创建支出分类来记录您的支出类型</p>
+                    <a href="/account-books/{{ account_book.id }}/categories/new" class="apple-button apple-button-success">
                         <i class="bi bi-plus"></i>
                         创建支出分类
                     </a>
                 </div>
                 {% else %}
-                <div class="row">
+                <div>
                     {% for category in expense_categories %}
-                    <div class="col-md-12 mb-3">
-                        <div class="d-flex align-items-center justify-content-between p-3 border rounded">
-                            <div class="d-flex align-items-center">
-                                <div class="category-icon me-3" style="background-color: {{ category.color }};">
-                                    {% if !category.icon.is_empty() %}
-                                        <i class="bi bi-{{ category.icon }}"></i>
-                                    {% else %}
-                                        <i class="bi bi-tag"></i>
-                                    {% endif %}
-                                </div>
-                                <div>
-                                    <h6 class="mb-1">{{ category.name }}</h6>
-                                    <small class="text-muted">
-                                        <i class="bi bi-clock"></i>
-                                        {{ category.created_at.format("%Y-%m-%d") }}
-                                    </small>
-                                </div>
+                    <div class="category-item d-flex align-items-center">
+                        <div class="category-icon" style="background-color: {{ category.color }};">
+                            {% if !category.icon.is_empty() %}
+                                <i class="bi bi-{{ category.icon }}"></i>
+                            {% else %}
+                                <i class="bi bi-tag"></i>
+                            {% endif %}
+                        </div>
+                        <div class="category-info">
+                            <div class="category-name">{{ category.name }}</div>
+                            <div class="category-meta">
+                                <i class="bi bi-calendar3 me-1"></i>
+                                创建于 {{ category.created_at.format("%Y-%m-%d") }}
                             </div>
-                            <div class="btn-group btn-group-sm" role="group">
-                                <a href="/account-books/{{ account_book.id }}/categories/{{ category.id }}/edit" 
-                                   class="btn btn-outline-primary btn-sm">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <button type="button" 
-                                        class="btn btn-outline-danger btn-sm" 
-                                        onclick="confirmDelete({{ category.id }}, '{{ category.name }}', 'expense')">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
+                        </div>
+                        <div class="category-actions">
+                            <a href="/account-books/{{ account_book.id }}/categories/{{ category.id }}/edit" 
+                               class="apple-button-edit">
+                                <i class="bi bi-pencil"></i>
+                                编辑
+                            </a>
+                            <button type="button" 
+                                    class="apple-button-danger"
+                                    onclick="confirmDelete({{ category.id }}, '{{ category.name }}', 'expense')">
+                                <i class="bi bi-trash"></i>
+                                删除
+                            </button>
                         </div>
                     </div>
                     {% endfor %}
@@ -162,18 +566,16 @@
             </div>
         </div>
     </div>
-</div>
 
-<!-- 操作提示 -->
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card bg-light">
-            <div class="card-body">
-                <h6 class="card-title">
-                    <i class="bi bi-info-circle text-info"></i>
+    <!-- 操作提示 -->
+    <div class="row">
+        <div class="col-12">
+            <div class="tips-card animate-scale-in" style="animation-delay: 0.2s">
+                <h5 class="tips-title">
+                    <i class="bi bi-lightbulb text-warning"></i>
                     操作提示
-                </h6>
-                <ul class="mb-0">
+                </h5>
+                <ul class="tips-list">
                     <li>收入分类用于记录各种收入来源，如工资、奖金、投资收益等</li>
                     <li>支出分类用于记录各种支出类型，如餐饮、交通、购物等</li>
                     <li>可以为每个分类设置图标和颜色，便于快速识别</li>
@@ -184,28 +586,35 @@
     </div>
 </div>
 
-<!-- 删除确认模态框 -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
+<!-- Apple风格删除确认模态框 -->
+<div class="modal fade apple-modal" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                <h5 class="modal-title d-flex align-items-center gap-3">
+                    <div class="w-8 h-8 bg-red-100 text-red-600 rounded-full d-flex align-items-center justify-content-center">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
                     确认删除分类
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>您确定要删除分类 "<span id="deleteCategoryName"></span>" 吗？</p>
-                <p class="text-danger">
-                    <i class="bi bi-info-circle"></i>
-                    删除后将无法恢复，请确保该分类下没有交易记录。
-                </p>
+                <p class="mb-3">您确定要删除分类 "<span id="deleteCategoryName"></span>" 吗？</p>
+                <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <div class="d-flex align-items-start gap-2 text-red-700">
+                        <i class="bi bi-info-circle mt-1"></i>
+                        <div class="small">
+                            <div class="text-red-600 fw-bold mb-2">注意：此操作不可撤销！</div>
+                            <div>删除后该分类将无法恢复，请确保该分类下没有交易记录</div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="apple-button-secondary" data-bs-dismiss="modal">取消</button>
                 <form id="deleteForm" method="post" style="display: inline;">
-                    <button type="submit" class="btn btn-danger">
+                    <button type="submit" class="apple-button-danger">
                         <i class="bi bi-trash"></i>
                         确认删除
                     </button>
@@ -214,19 +623,6 @@
         </div>
     </div>
 </div>
-
-<style>
-.category-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.2rem;
-}
-</style>
 
 <script>
 function confirmDelete(categoryId, categoryName, categoryType) {
@@ -237,5 +633,30 @@ function confirmDelete(categoryId, categoryName, categoryType) {
     const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
     modal.show();
 }
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', function() {
+    // 页面动画 - 分步显示
+    setTimeout(() => {
+        document.querySelectorAll('.animate-fade-in').forEach((el, index) => {
+            setTimeout(() => {
+                el.style.opacity = '1';
+            }, index * 100);
+        });
+        
+        document.querySelectorAll('.animate-slide-up').forEach((el, index) => {
+            setTimeout(() => {
+                el.style.opacity = '1';
+                el.style.transform = 'translateY(0)';
+            }, (index + 2) * 150);
+        });
+        
+        document.querySelectorAll('.animate-scale-in').forEach((el, index) => {
+            setTimeout(() => {
+                el.style.opacity = '1';
+            }, (index + 4) * 100);
+        });
+    }, 100);
+});
 </script>
 {% endblock %}

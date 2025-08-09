@@ -2,195 +2,499 @@
 
 {% block title %}新建分类 - {{ account_book.name }}{% endblock %}
 
-
+{% block extra_head %}
+<style>
+    * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* 页面动画 */
+    .animate-fade-in,
+    .animate-slide-up,
+    .animate-scale-in {
+        opacity: 0;
+    }
+    
+    .animate-slide-up {
+        transform: translateY(30px);
+        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Apple风格卡片 */
+    .apple-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+    
+    .apple-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Apple风格按钮 */
+    .apple-button {
+        background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-weight: 600;
+        padding: 12px 20px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .apple-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .apple-button-secondary {
+        background: rgba(0, 122, 255, 0.1);
+        border: 1px solid rgba(0, 122, 255, 0.2);
+        border-radius: 12px;
+        color: #007AFF;
+        font-weight: 600;
+        padding: 10px 18px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .apple-button-secondary:hover {
+        background: rgba(0, 122, 255, 0.15);
+        transform: translateY(-1px);
+        color: #007AFF;
+        text-decoration: none;
+    }
+    
+    .apple-button-success {
+        background: linear-gradient(135deg, #34D399, #10B981);
+        box-shadow: 0 4px 15px rgba(52, 211, 153, 0.3);
+    }
+    
+    .apple-button-success:hover {
+        box-shadow: 0 6px 20px rgba(52, 211, 153, 0.4);
+    }
+    
+    .apple-button-reset {
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        border-radius: 12px;
+        color: #F59E0B;
+        font-weight: 600;
+        padding: 10px 18px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .apple-button-reset:hover {
+        background: rgba(245, 158, 11, 0.15);
+        transform: translateY(-1px);
+        color: #F59E0B;
+        text-decoration: none;
+    }
+    
+    /* 表单区域整体样式 */
+    .form-container {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    .form-section {
+        background: white;
+        border-radius: 20px;
+        padding: 28px;
+        margin-bottom: 20px;
+        border: 1px solid #f0f0f0;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.04);
+        transition: all 0.3s ease;
+    }
+    
+    .form-section:hover {
+        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+    }
+    
+    .form-section-title {
+        color: #262626;
+        font-weight: 700;
+        font-size: 18px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #f5f5f5;
+    }
+    
+    /* 表单样式 */
+    .apple-form-control {
+        border: 2px solid #e8e8e8;
+        border-radius: 14px;
+        padding: 16px 18px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        background: #fafafa;
+        width: 100%;
+        font-weight: 500;
+    }
+    
+    .apple-form-control:focus {
+        border-color: #007AFF;
+        box-shadow: 0 0 0 0.2rem rgba(0, 122, 255, 0.1);
+        outline: none;
+        background: white;
+        transform: translateY(-1px);
+    }
+    
+    .apple-form-control::placeholder {
+        color: #a0a0a0;
+        font-weight: 400;
+    }
+    
+    .apple-form-label {
+        font-weight: 600;
+        color: #262626;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        font-size: 15px;
+    }
+    
+    .apple-form-text {
+        color: #737373;
+        font-size: 13px;
+        margin-top: 8px;
+        display: flex;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    /* 预览卡片 */
+    .preview-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .category-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-right: 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .category-name {
+        font-weight: 700;
+        color: #262626;
+        margin-bottom: 4px;
+        font-size: 16px;
+    }
+    
+    .category-type {
+        color: #737373;
+        font-size: 14px;
+    }
+    
+    /* 颜色选择器 */
+    .color-input-group {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    
+    .color-preview {
+        background: rgba(0, 122, 255, 0.1);
+        border: 1px solid rgba(0, 122, 255, 0.2);
+        border-radius: 12px;
+        padding: 12px 16px;
+        margin-left: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        color: #007AFF;
+        min-width: 80px;
+        text-align: center;
+    }
+    
+    /* 消息样式 */
+    .message-error {
+        background: linear-gradient(135deg, #F87171 0%, #EF4444 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        border: none;
+        margin-bottom: 24px;
+    }
+    
+    /* 面包屑导航 */
+    .apple-breadcrumb {
+        background: transparent;
+        padding: 0;
+        margin-bottom: 16px;
+    }
+    
+    .apple-breadcrumb-item {
+        color: #007AFF;
+        text-decoration: none;
+        font-size: 14px;
+    }
+    
+    .apple-breadcrumb-item:hover {
+        text-decoration: underline;
+    }
+    
+    .apple-breadcrumb-item.active {
+        color: #525252;
+    }
+    
+    /* 响应式优化 */
+    @media (max-width: 768px) {
+        .form-container {
+            max-width: 100%;
+            padding: 0 10px;
+        }
+        
+        .form-section {
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .form-section-title {
+            font-size: 16px;
+            margin-bottom: 18px;
+        }
+        
+        .category-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+            margin-right: 12px;
+        }
+    }
+</style>
+{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow-sm">
-            <div class="card-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">
-                        <i class="bi bi-plus-circle text-primary"></i>
-                        新建分类
-                    </h4>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb mb-0">
-                            <li class="breadcrumb-item"><a href="/account-books">我的账本</a></li>
-                            <li class="breadcrumb-item"><a href="/account-books/{{ account_book.id }}">{{ account_book.name }}</a></li>
-                            <li class="breadcrumb-item"><a href="/account-books/{{ account_book.id }}/categories">管理分类</a></li>
-                            <li class="breadcrumb-item active">新建</li>
-                        </ol>
-                    </nav>
-                </div>
-            </div>
-            <div class="card-body">
-                <!-- 错误信息显示 -->
-                {% if !error.is_empty() %}
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    {{ error }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                {% endif %}
+<div class="container-fluid px-4 py-6">
+    <!-- 错误消息显示 -->
+    {% if !error.is_empty() %}
+    <div class="message-error d-flex align-items-center gap-3 animate-fade-in" id="errorMessage">
+        <i class="bi bi-exclamation-triangle text-2xl"></i>
+        <span>{{ error }}</span>
+        <button type="button" class="btn-close btn-close-white ms-auto" onclick="document.getElementById('errorMessage').remove()"></button>
+    </div>
+    {% endif %}
 
-                <form method="post" action="/account-books/{{ account_book.id }}/categories">
-                    <div class="row">
-                        <div class="col-md-8">
-                            <div class="mb-3">
-                                <label for="name" class="form-label">
-                                    <i class="bi bi-tag"></i>
-                                    分类名称 <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="name" 
-                                       name="name" 
-                                       required 
-                                       maxlength="100"
-                                       placeholder="请输入分类名称">
-                                <div class="form-text">
-                                    <i class="bi bi-info-circle"></i>
-                                    例如：餐饮美食、交通出行、工资收入等
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="category_type" class="form-label">
-                                    <i class="bi bi-arrow-left-right"></i>
-                                    分类类型 <span class="text-danger">*</span>
-                                </label>
-                                <select class="form-select" id="category_type" name="category_type" required>
-                                    <option value="">请选择类型</option>
-                                    <option value="income">收入分类</option>
-                                    <option value="expense">支出分类</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+    <!-- 面包屑导航 -->
+    <nav class="apple-breadcrumb animate-fade-in">
+        <a href="/account-books" class="apple-breadcrumb-item">我的账本</a>
+        <span class="mx-2 text-apple-gray-400">/</span>
+        <a href="/account-books/{{ account_book.id }}" class="apple-breadcrumb-item">{{ account_book.name }}</a>
+        <span class="mx-2 text-apple-gray-400">/</span>
+        <a href="/account-books/{{ account_book.id }}/categories" class="apple-breadcrumb-item">管理分类</a>
+        <span class="mx-2 text-apple-gray-400">/</span>
+        <span class="apple-breadcrumb-item active">新建分类</span>
+    </nav>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="icon" class="form-label">
-                                    <i class="bi bi-emoji-smile"></i>
-                                    图标
-                                </label>
-                                <select class="form-select" id="icon" name="icon">
-                                    <option value="">选择图标（可选）</option>
-                                    <optgroup label="收入图标">
-                                        <option value="cash-coin">💰 现金</option>
-                                        <option value="credit-card">💳 银行卡</option>
-                                        <option value="currency-dollar">💵 工资</option>
-                                        <option value="graph-up-arrow">📈 投资</option>
-                                        <option value="gift">🎁 红包</option>
-                                        <option value="house">🏠 租金</option>
-                                    </optgroup>
-                                    <optgroup label="支出图标">
-                                        <option value="cup-straw">🍴 餐饮</option>
-                                        <option value="car-front">🚗 交通</option>
-                                        <option value="cart">🛒 购物</option>
-                                        <option value="controller">🎮 娱乐</option>
-                                        <option value="hospital">🏥 医疗</option>
-                                        <option value="book">📚 教育</option>
-                                        <option value="house-door">🏠 住房</option>
-                                        <option value="lightning">⚡ 水电</option>
-                                        <option value="phone">📱 通讯</option>
-                                        <option value="three-dots">⋯ 其他</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="color" class="form-label">
-                                    <i class="bi bi-palette"></i>
-                                    颜色
-                                </label>
-                                <div class="input-group">
-                                    <input type="color" 
-                                           class="form-control form-control-color" 
-                                           id="color" 
-                                           name="color" 
-                                           value="#007bff"
-                                           title="选择颜色">
-                                    <span class="input-group-text">#007bff</span>
-                                </div>
-                                <div class="form-text">
-                                    <i class="bi bi-info-circle"></i>
-                                    选择一个代表性的颜色
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 预览区域 -->
-                    <div class="mb-4">
-                        <label class="form-label">
-                            <i class="bi bi-eye"></i>
-                            预览效果
-                        </label>
-                        <div class="card bg-light">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center">
-                                    <div id="preview-icon" class="category-icon me-3" style="background-color: #007bff;">
-                                        <i class="bi bi-tag"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-1" id="preview-name">分类名称预览</h6>
-                                        <small class="text-muted" id="preview-type">请选择分类类型</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <a href="/account-books/{{ account_book.id }}/categories" class="btn btn-outline-secondary">
-                                <i class="bi bi-arrow-left"></i>
-                                返回分类列表
-                            </a>
-                        </div>
-                        <div>
-                            <button type="reset" class="btn btn-outline-warning me-2">
-                                <i class="bi bi-arrow-counterclockwise"></i>
-                                重置
-                            </button>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-circle"></i>
-                                创建分类
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
+    <!-- 页面标题区域 -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-6 animate-fade-in">
+        <div>
+            <h1 class="h2 text-apple-gray-800 mb-2 font-weight-light">
+                <i class="bi bi-plus-circle text-success me-3"></i>
+                新建分类
+            </h1>
+            <p class="text-apple-gray-600 mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-journal-text"></i>
+                账本：<strong class="text-apple-gray-800">{{ account_book.name }}</strong>
+                <span class="badge bg-light text-primary border">{{ account_book.currency }}</span>
+            </p>
         </div>
+        <div class="mt-3 mt-md-0">
+            <a href="/account-books/{{ account_book.id }}/categories" class="apple-button-secondary">
+                <i class="bi bi-arrow-left"></i>
+                返回分类列表
+            </a>
+        </div>
+    </div>
+
+    <div class="form-container animate-slide-up">
+        <form method="post" action="/account-books/{{ account_book.id }}/categories" id="categoryForm">
+            <!-- 基本信息 -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="bi bi-info-circle text-primary"></i>
+                    基本信息
+                </div>
+                
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label for="name" class="apple-form-label">
+                            <i class="bi bi-tag text-muted me-1"></i>
+                            分类名称 <span class="text-danger ms-1">*</span>
+                        </label>
+                        <input type="text" class="apple-form-control" id="name" name="name" 
+                               required maxlength="100" placeholder="请输入分类名称">
+                        <div class="apple-form-text">
+                            <i class="bi bi-lightbulb me-1"></i>
+                            例如：餐饮美食、交通出行、工资收入等
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="category_type" class="apple-form-label">
+                            <i class="bi bi-arrow-left-right text-muted me-1"></i>
+                            分类类型 <span class="text-danger ms-1">*</span>
+                        </label>
+                        <select class="apple-form-control" id="category_type" name="category_type" required>
+                            <option value="">请选择类型</option>
+                            <option value="income">收入分类</option>
+                            <option value="expense">支出分类</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 外观设置 -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="bi bi-palette text-primary"></i>
+                    外观设置
+                </div>
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="icon" class="apple-form-label">
+                            <i class="bi bi-emoji-smile text-muted me-1"></i>
+                            图标
+                        </label>
+                        <select class="apple-form-control" id="icon" name="icon">
+                            <option value="">选择图标（可选）</option>
+                            <optgroup label="收入图标">
+                                <option value="cash-coin">💰 现金</option>
+                                <option value="credit-card">💳 银行卡</option>
+                                <option value="currency-dollar">💵 工资</option>
+                                <option value="graph-up-arrow">📈 投资</option>
+                                <option value="gift">🎁 红包</option>
+                                <option value="house">🏠 租金</option>
+                            </optgroup>
+                            <optgroup label="支出图标">
+                                <option value="cup-straw">🍴 餐饮</option>
+                                <option value="car-front">🚗 交通</option>
+                                <option value="cart">🛒 购物</option>
+                                <option value="controller">🎮 娱乐</option>
+                                <option value="hospital">🏥 医疗</option>
+                                <option value="book">📚 教育</option>
+                                <option value="house-door">🏠 住房</option>
+                                <option value="lightning">⚡ 水电</option>
+                                <option value="phone">📱 通讯</option>
+                                <option value="three-dots">⋯ 其他</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="color" class="apple-form-label">
+                            <i class="bi bi-palette text-muted me-1"></i>
+                            颜色
+                        </label>
+                        <div class="color-input-group">
+                            <input type="color" class="apple-form-control" id="color" name="color" 
+                                   value="#007bff" title="选择颜色" style="max-width: 60px;">
+                            <span class="color-preview" id="colorPreview">#007BFF</span>
+                        </div>
+                        <div class="apple-form-text">
+                            <i class="bi bi-info-circle me-1"></i>
+                            选择一个代表性的颜色
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 预览效果 -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="bi bi-eye text-primary"></i>
+                    预览效果
+                </div>
+                <div class="preview-card">
+                    <div class="d-flex align-items-center">
+                        <div id="preview-icon" class="category-icon" style="background-color: #007bff;">
+                            <i class="bi bi-tag"></i>
+                        </div>
+                        <div>
+                            <div class="category-name" id="preview-name">分类名称预览</div>
+                            <div class="category-type" id="preview-type">请选择分类类型</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="form-section">
+                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+                    <a href="/account-books/{{ account_book.id }}/categories" class="apple-button-secondary">
+                        <i class="bi bi-arrow-left"></i>
+                        取消返回
+                    </a>
+                    <button type="reset" class="apple-button-reset">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        重置
+                    </button>
+                    <button type="submit" class="apple-button apple-button-success">
+                        <i class="bi bi-check-circle"></i>
+                        创建分类
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 
-<style>
-.category-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.2rem;
-}
-</style>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // 页面动画 - 分步显示
+    setTimeout(() => {
+        document.querySelectorAll('.animate-fade-in').forEach((el, index) => {
+            setTimeout(() => {
+                el.style.opacity = '1';
+            }, index * 100);
+        });
+        
+        document.querySelectorAll('.animate-slide-up').forEach((el, index) => {
+            setTimeout(() => {
+                el.style.opacity = '1';
+                el.style.transform = 'translateY(0)';
+            }, (index + 2) * 150);
+        });
+    }, 100);
+    
     const nameInput = document.getElementById('name');
     const typeSelect = document.getElementById('category_type');
     const iconSelect = document.getElementById('icon');
     const colorInput = document.getElementById('color');
-    const colorDisplay = colorInput.nextElementSibling;
+    const colorPreview = document.getElementById('colorPreview');
     
     const previewName = document.getElementById('preview-name');
     const previewType = document.getElementById('preview-type');
@@ -224,7 +528,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 更新颜色
         const color = colorInput.value;
         previewIcon.style.backgroundColor = color;
-        colorDisplay.textContent = color.toUpperCase();
+        colorPreview.textContent = color.toUpperCase();
     }
     
     // 绑定事件监听器
@@ -233,41 +537,78 @@ document.addEventListener('DOMContentLoaded', function() {
     iconSelect.addEventListener('change', updatePreview);
     colorInput.addEventListener('input', updatePreview);
     
-    // 表单验证
-    const form = document.querySelector('form');
+    // 表单验证增强
+    const form = document.getElementById('categoryForm');
     form.addEventListener('submit', function(e) {
         const name = nameInput.value.trim();
         const type = typeSelect.value;
         
+        // 验证分类名称
         if (!name) {
             e.preventDefault();
-            nameInput.classList.add('is-invalid');
+            showValidationError('分类名称', '请输入分类名称');
             nameInput.focus();
             return;
         }
         
+        // 验证分类类型
         if (!type) {
             e.preventDefault();
-            typeSelect.classList.add('is-invalid');
+            showValidationError('分类类型', '请选择分类类型');
             typeSelect.focus();
             return;
         }
-    });
-    
-    // 移除验证错误状态
-    nameInput.addEventListener('input', function() {
-        this.classList.remove('is-invalid');
-    });
-    
-    typeSelect.addEventListener('change', function() {
-        this.classList.remove('is-invalid');
+        
+        // 提交时显示加载状态
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> 正在创建...';
+        
+        // 如果有验证错误，恢复按钮状态
+        setTimeout(() => {
+            if (submitBtn.disabled) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        }, 5000);
     });
     
     // 重置按钮
     const resetButton = document.querySelector('button[type="reset"]');
     resetButton.addEventListener('click', function() {
-        setTimeout(updatePreview, 0); // 等待表单重置完成
+        setTimeout(() => {
+            colorPreview.textContent = '#007BFF';
+            updatePreview();
+        }, 0); // 等待表单重置完成
     });
 });
+
+// 显示验证错误
+function showValidationError(field, message) {
+    // 创建Apple风格的错误提示
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'message-error d-flex align-items-center gap-3';
+    alertDiv.style.marginBottom = '20px';
+    alertDiv.innerHTML = `
+        <i class="bi bi-exclamation-triangle"></i>
+        <span><strong>${field}错误：</strong>${message}</span>
+        <button type="button" class="btn-close btn-close-white ms-auto" onclick="this.parentElement.remove()"></button>
+    `;
+    
+    // 插入到表单容器顶部
+    const container = document.querySelector('.form-container');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // 滚动到错误提示
+    alertDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // 5秒后自动消失
+    setTimeout(() => {
+        if (alertDiv.parentElement) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
 </script>
 {% endblock %}

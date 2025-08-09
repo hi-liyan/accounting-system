@@ -2,259 +2,664 @@
 
 {% block title %}{{ book.name }} - 统计报表{% endblock %}
 
+{% block extra_head %}
+<style>
+    * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* 页面动画 */
+    .animate-fade-in,
+    .animate-slide-up,
+    .animate-scale-in {
+        opacity: 0;
+    }
+    
+    .animate-slide-up {
+        transform: translateY(30px);
+        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Apple风格卡片 */
+    .apple-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+    
+    .apple-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* 统计卡片 */
+    .stat-card {
+        position: relative;
+        overflow: hidden;
+        padding: 24px;
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--accent-color, #007AFF);
+        border-radius: 20px 20px 0 0;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-card.income::before { background: linear-gradient(135deg, #34D399, #10B981); }
+    .stat-card.expense::before { background: linear-gradient(135deg, #F87171, #EF4444); }
+    .stat-card.balance::before { background: linear-gradient(135deg, #3B82F6, #1D4ED8); }
+    .stat-card.average::before { background: linear-gradient(135deg, #FBBF24, #F59E0B); }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #262626;
+        margin-bottom: 4px;
+    }
+    
+    .stat-label {
+        font-size: 0.95rem;
+        color: #737373;
+        margin: 0;
+    }
+    
+    /* Apple风格按钮 */
+    .apple-button {
+        background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-weight: 600;
+        padding: 12px 20px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .apple-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .apple-button-secondary {
+        background: rgba(0, 122, 255, 0.1);
+        border: 1px solid rgba(0, 122, 255, 0.2);
+        border-radius: 12px;
+        color: #007AFF;
+        font-weight: 600;
+        padding: 10px 18px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .apple-button-secondary:hover {
+        background: rgba(0, 122, 255, 0.15);
+        transform: translateY(-1px);
+        color: #007AFF;
+        text-decoration: none;
+    }
+    
+    /* 面包屑导航 */
+    .apple-breadcrumb {
+        background: transparent;
+        padding: 0;
+        margin-bottom: 16px;
+    }
+    
+    .apple-breadcrumb-item {
+        color: #007AFF;
+        text-decoration: none;
+        font-size: 14px;
+    }
+    
+    .apple-breadcrumb-item:hover {
+        text-decoration: underline;
+    }
+    
+    .apple-breadcrumb-item.active {
+        color: #525252;
+    }
+    
+    /* 图表容器优化 */
+    .chart-container {
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+        margin-bottom: 24px;
+        z-index: 1; /* 确保图表容器z-index较低 */
+        position: relative;
+    }
+    
+    .chart-container:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .chart-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid #f5f5f5;
+    }
+    
+    .chart-title {
+        color: #262626;
+        font-weight: 700;
+        font-size: 1.25rem;
+        margin: 0;
+    }
+    
+    /* 图表尺寸优化 */
+    .chart-canvas {
+        max-height: 300px !important;
+        width: 100% !important;
+    }
+    
+    .pie-chart-canvas {
+        max-height: 250px !important;
+        width: 100% !important;
+    }
+    
+    /* 分类列表样式 */
+    .category-list {
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f0f0f0;
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+    
+    .category-list:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .category-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0;
+        border-bottom: 1px solid #f0f0f0;
+        transition: all 0.2s ease;
+    }
+    
+    .category-item:last-child {
+        border-bottom: none;
+    }
+    
+    .category-item:hover {
+        background: rgba(0, 122, 255, 0.02);
+        border-radius: 12px;
+        margin: 0 -8px;
+        padding: 16px 8px;
+    }
+    
+    .category-icon {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+    
+    .category-info {
+        flex-grow: 1;
+    }
+    
+    .category-name {
+        font-weight: 600;
+        color: #262626;
+        margin-bottom: 2px;
+        font-size: 0.95rem;
+    }
+    
+    .category-count {
+        font-size: 0.85rem;
+        color: #737373;
+    }
+    
+    .category-amount {
+        text-align: right;
+    }
+    
+    .category-value {
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 2px;
+    }
+    
+    .category-percentage {
+        font-size: 0.85rem;
+        color: #737373;
+    }
+    
+    /* 消息样式 */
+    .message-error {
+        background: linear-gradient(135deg, #F87171 0%, #EF4444 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        border: none;
+        margin-bottom: 24px;
+    }
+    
+    /* 空状态样式 */
+    .empty-state {
+        text-align: center;
+        padding: 48px 20px;
+        color: #737373;
+    }
+    
+    .empty-state-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+        color: #1976D2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 2rem;
+    }
+    
+    /* 时间范围按钮组样式 */
+    .time-range-btn {
+        padding: 6px 12px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #6c757d;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    
+    .time-range-btn:hover {
+        color: #007AFF;
+        border-color: #007AFF;
+        background: rgba(0, 122, 255, 0.05);
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+    
+    .time-range-btn.active {
+        color: white;
+        background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+        border-color: #007AFF;
+        box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+    }
+    
+    .time-range-btn.active:hover {
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+    }
+    
+    /* 时间范围显示 */
+    .time-range-indicator {
+        background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+        color: #1976D2;
+        border-radius: 12px;
+        padding: 8px 16px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    /* 响应式优化 */
+    @media (max-width: 768px) {
+        .stat-card {
+            padding: 20px;
+        }
+        
+        .stat-value {
+            font-size: 1.75rem;
+        }
+        
+        .chart-container {
+            padding: 16px;
+        }
+        
+        .chart-canvas,
+        .pie-chart-canvas {
+            max-height: 200px !important;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<!-- 错误消息显示 -->
-{% if !error.is_empty() %}
-<div class="alert alert-danger alert-dismissible fade show" role="alert">
-    <i class="bi bi-exclamation-triangle"></i>
-    {{ error }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endif %}
+<div class="container-fluid px-4 py-6">
+    <!-- 错误消息显示 -->
+    {% if !error.is_empty() %}
+    <div class="message-error d-flex align-items-center gap-3 animate-fade-in" id="errorMessage">
+        <i class="bi bi-exclamation-triangle text-2xl"></i>
+        <span>{{ error }}</span>
+        <button type="button" class="btn-close btn-close-white ms-auto" onclick="document.getElementById('errorMessage').remove()"></button>
+    </div>
+    {% endif %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/account-books">我的账本</a></li>
-                <li class="breadcrumb-item"><a href="/account-books/{{ book.id }}">{{ book.name }}</a></li>
-                <li class="breadcrumb-item active">统计报表</li>
-            </ol>
-        </nav>
-        <h2>
-            <i class="bi bi-graph-up text-primary"></i>
-            统计报表 - {{ book.name }}
-        </h2>
-    </div>
-    <div class="btn-group" role="group">
-        <a href="/account-books/{{ book.id }}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i>
-            返回账本
-        </a>
-        <div class="btn-group" role="group">
-            <button type="button" class="btn btn-outline-info dropdown-toggle" data-bs-toggle="dropdown">
-                <i class="bi bi-calendar-range"></i>
-                时间范围
-            </button>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="?months=3">最近3个月</a></li>
-                <li><a class="dropdown-item" href="?months=6">最近6个月</a></li>
-                <li><a class="dropdown-item" href="?months=12">最近1年</a></li>
-                <li><a class="dropdown-item" href="?months=24">最近2年</a></li>
-            </ul>
-        </div>
-    </div>
-</div>
+    <!-- 面包屑导航 -->
+    <nav class="apple-breadcrumb animate-fade-in">
+        <a href="/account-books" class="apple-breadcrumb-item">我的账本</a>
+        <span class="mx-2 text-apple-gray-400">/</span>
+        <a href="/account-books/{{ book.id }}" class="apple-breadcrumb-item">{{ book.name }}</a>
+        <span class="mx-2 text-apple-gray-400">/</span>
+        <span class="apple-breadcrumb-item active">统计报表</span>
+    </nav>
 
-<!-- 总览统计卡片 -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card text-center border-success">
-            <div class="card-body">
-                <i class="bi bi-arrow-up-circle-fill text-success" style="font-size: 2.5rem;"></i>
-                <h4 class="mt-2 text-success">¥{{ total_income }}</h4>
-                <p class="text-muted mb-0">总收入</p>
-            </div>
+    <!-- 页面标题区域 -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 animate-fade-in">
+        <div>
+            <h1 class="h2 text-apple-gray-800 mb-2 font-weight-light">
+                <i class="bi bi-graph-up text-primary me-3"></i>
+                统计报表
+            </h1>
+            <p class="text-apple-gray-600 mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-journal-text"></i>
+                账本：<strong class="text-apple-gray-800">{{ book.name }}</strong>
+                <span class="badge bg-light text-primary border">{{ book.currency }}</span>
+            </p>
+        </div>
+        <div class="d-flex flex-column flex-sm-row gap-3 mt-3 mt-md-0">
+            <a href="/account-books/{{ book.id }}" class="apple-button-secondary">
+                <i class="bi bi-arrow-left"></i>
+                返回账本
+            </a>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-center border-danger">
-            <div class="card-body">
-                <i class="bi bi-arrow-down-circle-fill text-danger" style="font-size: 2.5rem;"></i>
-                <h4 class="mt-2 text-danger">¥{{ total_expense }}</h4>
-                <p class="text-muted mb-0">总支出</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-center border-info">
-            <div class="card-body">
-                {% if total_income >= total_expense %}
-                    <i class="bi bi-plus-circle-fill text-success" style="font-size: 2.5rem;"></i>
-                    <h4 class="mt-2 text-success">¥{{ total_income - total_expense }}</h4>
-                    <p class="text-muted mb-0">净收入</p>
-                {% else %}
-                    <i class="bi bi-dash-circle-fill text-danger" style="font-size: 2.5rem;"></i>
-                    <h4 class="mt-2 text-danger">¥{{ total_expense - total_income }}</h4>
-                    <p class="text-muted mb-0">净支出</p>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-center border-warning">
-            <div class="card-body">
-                <i class="bi bi-calendar-day text-warning" style="font-size: 2.5rem;"></i>
-                <h4 class="mt-2 text-warning">¥{{ average_daily_expense }}</h4>
-                <p class="text-muted mb-0">日均支出</p>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- 月度收支趋势图表 -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-graph-up"></i>
-                    月度收支趋势
-                </h5>
+    <!-- 时间范围选择器 - 使用按钮组代替下拉菜单 -->
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center mb-6 animate-fade-in" style="animation-delay: 0.1s">
+        <div class="time-range-indicator" id="timeRangeIndicator">
+            <i class="bi bi-calendar-check"></i>
+            <span id="timeRangeText">当前月数据</span>
+        </div>
+        
+        <div class="d-flex flex-wrap gap-2 mt-3 mt-lg-0">
+            <span class="text-muted me-2 d-flex align-items-center">
+                <i class="bi bi-calendar-range me-1"></i>
+                时间范围:
+            </span>
+            <a href="?period=current" class="time-range-btn active" data-period="current">当前月</a>
+            <a href="?period=3months" class="time-range-btn" data-period="3months">最近3个月</a>
+            <a href="?period=6months" class="time-range-btn" data-period="6months">最近6个月</a>
+            <a href="?period=12months" class="time-range-btn" data-period="12months">最近1年</a>
+            <a href="?period=24months" class="time-range-btn" data-period="24months">最近2年</a>
+        </div>
+        
+        <div class="text-muted small mt-3 mt-lg-0" id="dataUpdateTime">
+            数据更新时间: <script>document.write(new Date().toLocaleString('zh-CN'))</script>
+        </div>
+    </div>
+
+    <!-- 总览统计卡片 -->
+    <div class="row g-4 mb-6">
+        <div class="col-lg-3 col-md-6">
+            <div class="apple-card stat-card income animate-scale-in">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-value text-success">¥{{ total_income }}</div>
+                        <p class="stat-label">总收入</p>
+                    </div>
+                    <div class="stat-icon bg-gradient-to-br from-green-100 to-emerald-100 text-green-600">
+                        <i class="bi bi-arrow-up-circle-fill"></i>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <canvas id="monthlyTrendChart" width="400" height="200"></canvas>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="apple-card stat-card expense animate-scale-in" style="animation-delay: 0.1s">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-value text-danger">¥{{ total_expense }}</div>
+                        <p class="stat-label">总支出</p>
+                    </div>
+                    <div class="stat-icon bg-gradient-to-br from-red-100 to-pink-100 text-red-600">
+                        <i class="bi bi-arrow-down-circle-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="apple-card stat-card balance animate-scale-in" style="animation-delay: 0.2s">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        {% if total_income >= total_expense %}
+                            <div class="stat-value text-success">¥{{ total_income - total_expense }}</div>
+                            <p class="stat-label">净收入</p>
+                        {% else %}
+                            <div class="stat-value text-danger">¥{{ total_expense - total_income }}</div>
+                            <p class="stat-label">净支出</p>
+                        {% endif %}
+                    </div>
+                    <div class="stat-icon bg-gradient-to-br from-blue-100 to-indigo-100">
+                        {% if total_income >= total_expense %}
+                            <i class="bi bi-plus-circle-fill text-blue-600"></i>
+                        {% else %}
+                            <i class="bi bi-dash-circle-fill text-yellow-600"></i>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="apple-card stat-card average animate-scale-in" style="animation-delay: 0.3s">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-value text-warning">¥{{ average_daily_expense }}</div>
+                        <p class="stat-label">日均支出</p>
+                    </div>
+                    <div class="stat-icon bg-gradient-to-br from-yellow-100 to-orange-100 text-yellow-600">
+                        <i class="bi bi-calendar-day"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- 分类统计图表 -->
-<div class="row mb-4">
-    <!-- 支出分类饼图 -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-pie-chart"></i>
-                    支出分类占比
-                </h5>
+    <!-- 月度收支趋势图表 -->
+    <div class="row mb-6">
+        <div class="col-12">
+            <div class="chart-container animate-slide-up">
+                <div class="chart-header">
+                    <i class="bi bi-graph-up text-primary"></i>
+                    <h3 class="chart-title">月度收支趋势</h3>
+                </div>
+                <div style="position: relative;">
+                    <canvas id="monthlyTrendChart" class="chart-canvas"></canvas>
+                </div>
             </div>
-            <div class="card-body">
+        </div>
+    </div>
+
+    <!-- 分类统计图表 -->
+    <div class="row g-4 mb-6">
+        <!-- 支出分类饼图 -->
+        <div class="col-lg-6">
+            <div class="chart-container animate-slide-up" style="animation-delay: 0.1s">
+                <div class="chart-header">
+                    <i class="bi bi-pie-chart text-danger"></i>
+                    <h3 class="chart-title">支出分类占比</h3>
+                </div>
                 {% if !expense_categories.is_empty() %}
-                    <canvas id="expenseCategoryChart" width="400" height="300"></canvas>
+                    <div style="position: relative;">
+                        <canvas id="expenseCategoryChart" class="pie-chart-canvas"></canvas>
+                    </div>
                 {% else %}
-                    <div class="text-center py-5">
-                        <i class="bi bi-info-circle text-muted" style="font-size: 3rem;"></i>
-                        <p class="text-muted mt-3">暂无支出数据</p>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="bi bi-info-circle"></i>
+                        </div>
+                        <p class="mb-0">暂无支出数据</p>
                     </div>
                 {% endif %}
             </div>
         </div>
-    </div>
-    
-    <!-- 收入分类饼图 -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-pie-chart-fill"></i>
-                    收入分类占比
-                </h5>
-            </div>
-            <div class="card-body">
+        
+        <!-- 收入分类饼图 -->
+        <div class="col-lg-6">
+            <div class="chart-container animate-slide-up" style="animation-delay: 0.2s">
+                <div class="chart-header">
+                    <i class="bi bi-pie-chart-fill text-success"></i>
+                    <h3 class="chart-title">收入分类占比</h3>
+                </div>
                 {% if !income_categories.is_empty() %}
-                    <canvas id="incomeCategoryChart" width="400" height="300"></canvas>
+                    <div style="position: relative;">
+                        <canvas id="incomeCategoryChart" class="pie-chart-canvas"></canvas>
+                    </div>
                 {% else %}
-                    <div class="text-center py-5">
-                        <i class="bi bi-info-circle text-muted" style="font-size: 3rem;"></i>
-                        <p class="text-muted mt-3">暂无收入数据</p>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="bi bi-info-circle"></i>
+                        </div>
+                        <p class="mb-0">暂无收入数据</p>
                     </div>
                 {% endif %}
             </div>
         </div>
     </div>
-</div>
 
-<!-- 分类排行榜 -->
-<div class="row mb-4">
-    <!-- 支出分类排行 -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-list-ol"></i>
-                    支出分类排行
-                </h5>
-            </div>
-            <div class="card-body">
+    <!-- 分类排行榜 -->
+    <div class="row g-4 mb-6">
+        <!-- 支出分类排行 -->
+        <div class="col-lg-6">
+            <div class="category-list animate-slide-up" style="animation-delay: 0.3s">
+                <div class="chart-header">
+                    <i class="bi bi-list-ol text-danger"></i>
+                    <h3 class="chart-title">支出分类排行</h3>
+                </div>
                 {% if !expense_categories.is_empty() %}
-                    <div class="list-group list-group-flush">
+                    <div>
                         {% for category in expense_categories %}
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="category-item">
                             <div class="d-flex align-items-center">
-                                <span class="badge rounded-pill me-3" style="background-color: {{ category.color }}; width: 12px; height: 12px;"></span>
-                                <div>
-                                    <h6 class="mb-1">{{ category.name }}</h6>
-                                    <small class="text-muted">{{ category.transaction_count }} 笔交易</small>
+                                <div class="category-icon" style="background-color: {{ category.color }};"></div>
+                                <div class="category-info">
+                                    <div class="category-name">{{ category.name }}</div>
+                                    <div class="category-count">{{ category.transaction_count }} 笔交易</div>
                                 </div>
                             </div>
-                            <div class="text-end">
-                                <span class="fw-bold text-danger">¥{{ category.amount }}</span>
-                                <br>
-                                <small class="text-muted">{{ category.percentage }}%</small>
+                            <div class="category-amount">
+                                <div class="category-value text-danger">¥{{ category.amount }}</div>
+                                <div class="category-percentage">{{ category.percentage }}%</div>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="text-center py-3">
-                        <i class="bi bi-info-circle text-muted"></i>
-                        <p class="text-muted mb-0">暂无支出数据</p>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="bi bi-info-circle"></i>
+                        </div>
+                        <p class="mb-0">暂无支出数据</p>
                     </div>
                 {% endif %}
             </div>
         </div>
-    </div>
-    
-    <!-- 收入分类排行 -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-list-ol"></i>
-                    收入分类排行
-                </h5>
-            </div>
-            <div class="card-body">
+        
+        <!-- 收入分类排行 -->
+        <div class="col-lg-6">
+            <div class="category-list animate-slide-up" style="animation-delay: 0.4s">
+                <div class="chart-header">
+                    <i class="bi bi-list-ol text-success"></i>
+                    <h3 class="chart-title">收入分类排行</h3>
+                </div>
                 {% if !income_categories.is_empty() %}
-                    <div class="list-group list-group-flush">
+                    <div>
                         {% for category in income_categories %}
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="category-item">
                             <div class="d-flex align-items-center">
-                                <span class="badge rounded-pill me-3" style="background-color: {{ category.color }}; width: 12px; height: 12px;"></span>
-                                <div>
-                                    <h6 class="mb-1">{{ category.name }}</h6>
-                                    <small class="text-muted">{{ category.transaction_count }} 笔交易</small>
+                                <div class="category-icon" style="background-color: {{ category.color }};"></div>
+                                <div class="category-info">
+                                    <div class="category-name">{{ category.name }}</div>
+                                    <div class="category-count">{{ category.transaction_count }} 笔交易</div>
                                 </div>
                             </div>
-                            <div class="text-end">
-                                <span class="fw-bold text-success">¥{{ category.amount }}</span>
-                                <br>
-                                <small class="text-muted">{{ category.percentage }}%</small>
+                            <div class="category-amount">
+                                <div class="category-value text-success">¥{{ category.amount }}</div>
+                                <div class="category-percentage">{{ category.percentage }}%</div>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="text-center py-3">
-                        <i class="bi bi-info-circle text-muted"></i>
-                        <p class="text-muted mb-0">暂无收入数据</p>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="bi bi-info-circle"></i>
+                        </div>
+                        <p class="mb-0">暂无收入数据</p>
                     </div>
                 {% endif %}
             </div>
         </div>
     </div>
-</div>
 
-<!-- 最近30天支出趋势 -->
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-bar-chart-line"></i>
-                    最近30天支出趋势
-                </h5>
-            </div>
-            <div class="card-body">
+    <!-- 最近30天支出趋势 -->
+    <div class="row mb-6">
+        <div class="col-12">
+            <div class="chart-container animate-slide-up" style="animation-delay: 0.5s">
+                <div class="chart-header">
+                    <i class="bi bi-bar-chart-line text-info"></i>
+                    <h3 class="chart-title">最近30天支出趋势</h3>
+                </div>
                 {% if !daily_expenses.is_empty() %}
-                    <canvas id="dailyExpenseChart" width="400" height="200"></canvas>
+                    <div style="position: relative;">
+                        <canvas id="dailyExpenseChart" class="chart-canvas"></canvas>
+                    </div>
                 {% else %}
-                    <div class="text-center py-5">
-                        <i class="bi bi-info-circle text-muted" style="font-size: 3rem;"></i>
-                        <p class="text-muted mt-3">暂无支出数据</p>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="bi bi-info-circle"></i>
+                        </div>
+                        <p class="mb-0">暂无支出数据</p>
                     </div>
                 {% endif %}
             </div>
@@ -265,6 +670,90 @@
 <!-- Chart.js 脚本 -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+// 页面加载动画
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        document.querySelectorAll('.animate-fade-in, .animate-slide-up, .animate-scale-in').forEach((el, index) => {
+            setTimeout(() => {
+                el.style.opacity = '1';
+            }, index * 100);
+        });
+    }, 100);
+    
+    // 设置时间范围下拉菜单的活跃状态
+    updateTimeRangeDropdown();
+});
+
+// 更新时间范围下拉菜单的活跃状态
+function updateTimeRangeDropdown() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const period = urlParams.get('period') || 'current'; // 默认为当前月
+    
+    // 移除所有活跃状态
+    document.querySelectorAll('.time-range-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // 设置当前选中项的活跃状态
+    const activeBtn = document.querySelector(`[data-period="${period}"]`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    } else {
+        // 如果没有找到匹配的参数，默认激活当前月
+        const currentBtn = document.querySelector(`[data-period="current"]`);
+        if (currentBtn) {
+            currentBtn.classList.add('active');
+        }
+    }
+    
+    // 更新时间范围指示器文本
+    updateTimeRangeIndicator(period);
+}
+
+// 更新时间范围指示器显示
+function updateTimeRangeIndicator(period) {
+    const timeRangeText = document.getElementById('timeRangeText');
+    const timeRangeIndicator = document.getElementById('timeRangeIndicator');
+    
+    let displayText = '';
+    let iconClass = 'bi bi-calendar-check';
+    
+    switch(period) {
+        case 'current':
+            displayText = '当前月数据';
+            iconClass = 'bi bi-calendar-month';
+            break;
+        case '3months':
+            displayText = '最近3个月数据';
+            iconClass = 'bi bi-calendar-range';
+            break;
+        case '6months':
+            displayText = '最近6个月数据';
+            iconClass = 'bi bi-calendar-range';
+            break;
+        case '12months':
+            displayText = '最近1年数据';
+            iconClass = 'bi bi-calendar-year';
+            break;
+        case '24months':
+            displayText = '最近2年数据';
+            iconClass = 'bi bi-calendar-year';
+            break;
+        default:
+            displayText = '当前月数据';
+            iconClass = 'bi bi-calendar-month';
+    }
+    
+    timeRangeText.textContent = displayText;
+    const icon = timeRangeIndicator.querySelector('i');
+    icon.className = iconClass;
+}
+
+// 图表配置优化
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, SF Pro Display, Helvetica Neue, Arial, sans-serif';
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#525252';
+
 // 月度趋势图表
 {% if !monthly_trends.is_empty() %}
 const monthlyCtx = document.getElementById('monthlyTrendChart').getContext('2d');
@@ -275,28 +764,85 @@ new Chart(monthlyCtx, {
         datasets: [{
             label: '收入',
             data: [{% for trend in monthly_trends %}{{ trend.income }}{% if !loop.last %},{% endif %}{% endfor %}],
-            borderColor: 'rgba(40, 167, 69, 1)',
-            backgroundColor: 'rgba(40, 167, 69, 0.1)',
-            tension: 0.1
+            borderColor: '#10B981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            tension: 0.4,
+            borderWidth: 3,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            pointBackgroundColor: '#10B981',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            fill: true
         }, {
             label: '支出',
             data: [{% for trend in monthly_trends %}{{ trend.expense }}{% if !loop.last %},{% endif %}{% endfor %}],
-            borderColor: 'rgba(220, 53, 69, 1)',
-            backgroundColor: 'rgba(220, 53, 69, 0.1)',
-            tension: 0.1
+            borderColor: '#EF4444',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            tension: 0.4,
+            borderWidth: 3,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            pointBackgroundColor: '#EF4444',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            fill: true
         }]
     },
     options: {
         responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            intersect: false,
+            mode: 'index'
+        },
         plugins: {
             legend: {
                 position: 'top',
+                labels: {
+                    usePointStyle: true,
+                    padding: 20,
+                    font: {
+                        size: 14,
+                        weight: '600'
+                    }
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 1,
+                cornerRadius: 8,
+                displayColors: true,
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': ¥' + context.parsed.y.toLocaleString();
+                    }
+                }
             }
         },
         scales: {
+            x: {
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    font: {
+                        size: 12
+                    }
+                }
+            },
             y: {
                 beginAtZero: true,
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)'
+                },
                 ticks: {
+                    font: {
+                        size: 12
+                    },
                     callback: function(value) {
                         return '¥' + value.toLocaleString();
                     }
@@ -311,26 +857,44 @@ new Chart(monthlyCtx, {
 {% if !expense_categories.is_empty() %}
 const expenseCtx = document.getElementById('expenseCategoryChart').getContext('2d');
 new Chart(expenseCtx, {
-    type: 'pie',
+    type: 'doughnut',
     data: {
         labels: [{% for category in expense_categories %}'{{ category.name }}'{% if !loop.last %},{% endif %}{% endfor %}],
         datasets: [{
             data: [{% for category in expense_categories %}{{ category.amount }}{% if !loop.last %},{% endif %}{% endfor %}],
-            backgroundColor: [{% for category in expense_categories %}'{{ category.color }}'{% if !loop.last %},{% endif %}{% endfor %}]
+            backgroundColor: [{% for category in expense_categories %}'{{ category.color }}'{% if !loop.last %},{% endif %}{% endfor %}],
+            borderWidth: 0,
+            hoverBorderWidth: 2,
+            hoverBorderColor: '#ffffff'
         }]
     },
     options: {
         responsive: true,
+        maintainAspectRatio: false,
+        cutout: '60%',
         plugins: {
             legend: {
                 position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    padding: 15,
+                    font: {
+                        size: 12
+                    }
+                }
             },
             tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 1,
+                cornerRadius: 8,
                 callbacks: {
                     label: function(context) {
-                        const label = context.label + ': ¥' + context.parsed.toLocaleString();
-                        const percentage = (context.parsed / context.dataset.data.reduce((a, b) => a + b, 0) * 100).toFixed(1);
-                        return label + ' (' + percentage + '%)';
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = ((context.parsed / total) * 100).toFixed(1);
+                        return context.label + ': ¥' + context.parsed.toLocaleString() + ' (' + percentage + '%)';
                     }
                 }
             }
@@ -343,26 +907,44 @@ new Chart(expenseCtx, {
 {% if !income_categories.is_empty() %}
 const incomeCtx = document.getElementById('incomeCategoryChart').getContext('2d');
 new Chart(incomeCtx, {
-    type: 'pie',
+    type: 'doughnut',
     data: {
         labels: [{% for category in income_categories %}'{{ category.name }}'{% if !loop.last %},{% endif %}{% endfor %}],
         datasets: [{
             data: [{% for category in income_categories %}{{ category.amount }}{% if !loop.last %},{% endif %}{% endfor %}],
-            backgroundColor: [{% for category in income_categories %}'{{ category.color }}'{% if !loop.last %},{% endif %}{% endfor %}]
+            backgroundColor: [{% for category in income_categories %}'{{ category.color }}'{% if !loop.last %},{% endif %}{% endfor %}],
+            borderWidth: 0,
+            hoverBorderWidth: 2,
+            hoverBorderColor: '#ffffff'
         }]
     },
     options: {
         responsive: true,
+        maintainAspectRatio: false,
+        cutout: '60%',
         plugins: {
             legend: {
                 position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    padding: 15,
+                    font: {
+                        size: 12
+                    }
+                }
             },
             tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 1,
+                cornerRadius: 8,
                 callbacks: {
                     label: function(context) {
-                        const label = context.label + ': ¥' + context.parsed.toLocaleString();
-                        const percentage = (context.parsed / context.dataset.data.reduce((a, b) => a + b, 0) * 100).toFixed(1);
-                        return label + ' (' + percentage + '%)';
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = ((context.parsed / total) * 100).toFixed(1);
+                        return context.label + ': ¥' + context.parsed.toLocaleString() + ' (' + percentage + '%)';
                     }
                 }
             }
@@ -381,22 +963,55 @@ new Chart(dailyCtx, {
         datasets: [{
             label: '支出',
             data: [{% for expense in daily_expenses %}{{ expense.amount }}{% if !loop.last %},{% endif %}{% endfor %}],
-            backgroundColor: 'rgba(220, 53, 69, 0.8)',
-            borderColor: 'rgba(220, 53, 69, 1)',
-            borderWidth: 1
+            backgroundColor: 'rgba(239, 68, 68, 0.8)',
+            borderColor: '#EF4444',
+            borderWidth: 0,
+            borderRadius: 4,
+            borderSkipped: false,
         }]
     },
     options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: {
                 display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 1,
+                cornerRadius: 8,
+                callbacks: {
+                    label: function(context) {
+                        return '支出: ¥' + context.parsed.y.toLocaleString();
+                    }
+                }
             }
         },
         scales: {
+            x: {
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    maxRotation: 45,
+                    font: {
+                        size: 10
+                    }
+                }
+            },
             y: {
                 beginAtZero: true,
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)'
+                },
                 ticks: {
+                    font: {
+                        size: 12
+                    },
                     callback: function(value) {
                         return '¥' + value.toLocaleString();
                     }

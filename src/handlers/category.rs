@@ -44,6 +44,7 @@ pub struct AccountBookDisplay {
     pub id: i64,
     pub name: String,
     pub description: String,
+    pub currency: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -81,6 +82,7 @@ impl From<crate::models::AccountBook> for AccountBookDisplay {
             id: book.id,
             name: book.name,
             description: book.description.unwrap_or_default(),
+            currency: book.currency,
         }
     }
 }
